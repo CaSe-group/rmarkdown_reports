@@ -1,0 +1,29 @@
+<!-- Report template, please replace {TOOL}  -->
+
+### Report templates
+
+#### Description
+
+* general tool description
+
+
+#### Results
+
+<!-- simple table, #RESULTSENV# will be replaced via nextflow process -->
+```{r,echo=FALSE}
+library(DT)
+inputdata <- read.csv(file = '#RESULTSENV#', header = TRUE, sep = '\t', check.names=FALSE)
+# Produce Table
+datatable(inputdata, extensions = 'Buttons', options = list(
+  searching = TRUE,
+  pageLength = 10,
+  lengthMenu = c(5, 10, 15, 20),
+  buttons = c('copy', 'csv', 'excel', 'colvis')
+))
+```
+
+
+#### Citation
+* data was generated with {TOOL} {TOOLVERSION}
+* please cite {DOI}
+* the command used was `command here`
