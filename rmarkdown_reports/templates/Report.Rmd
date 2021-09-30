@@ -1,0 +1,24 @@
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+---
+title: Results summary
+output:
+  bookdown::html_document2:
+    #css: style.css
+    number_sections: false
+    syntax: espresso
+    self_contained: yes
+    theme: cayman
+    code_folding: "hide"
+---
+
+
+# Samples {.tabset}
+
+Below you will find all your samples individually
