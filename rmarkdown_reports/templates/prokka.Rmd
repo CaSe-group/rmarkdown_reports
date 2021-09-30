@@ -2,16 +2,25 @@
 title: "Prokka"
 output:
   html_document:
+    theme: lumen
     code_folding: "hide"
 ---
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
+```{r data_read, echo=FALSE}
+PROKKA_INPUT_FILE <- "#RESULTSENV#"
+PROKKA_VERSION <- "#NAMEENV#"
+PROKKA_RAW <- read.delim(PROKKA_INPUT_FILE, header=FALSE)
 
+PROKKA_PROC <- separate(PROKKA_RAW, V9, c(NA, "name"), remove = FALSE, "gene_name")
+```
+Prokka is a software tool to annotate bacterial, archaeal and viral genomes quickly and produce standards-compliant output files. 
+
+Source: [link](https://github.com/tseemann/prokka)
 
 ```{r libraries, echo=FALSE}
-
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -20,116 +29,122 @@ library(DT)
 library(plotly)
 ```
 
-
-## Raw data
-
-
-```{r data_read, echo=FALSE}
-prokka_raw <- read.delim("#RESULTSENV#", 
-                                             header=FALSE)
-
-
-prokka_proc <- separate (prokka_raw, V9, c(NA, "name"), remove = FALSE, "gene_name")
-```
-
 ```{r text_parsing}
-gen_n <- prokka_proc %>% filter(V3 != 'CDS') %>% count() %>% as.integer()
-gen_n_hyp<- prokka_proc %>% filter(V3 != 'CDS' & name !='NA') %>% count() %>% as.integer()
-gen_true<- gen_n-gen_n_hyp
-hyp_perc <- round(gen_n_hyp/gen_n*100, 1)
-contig_n <- length(unique(prokka_proc$V1))
-rrna_gen_n <- prokka_proc %>% filter(str_detect(prokka_proc$V2,"barrnap") & V3 =="transcript") %>% count() %>% as.integer()
-trna_gen_n <- prokka_proc %>% filter(str_detect(prokka_proc$V2,"Aragorn") & V3 =="transcript") %>% count() %>% as.integer()
-pie <- data.frame(n=c(gen_true,gen_n_hyp,rrna_gen_n,trna_gen_n ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
+GEN_N <- PROKKA_PROC %>% filter(V3 != 'CDS') %>% count() %>% as.integer()
+GEN_N_HYP <- PROKKA_PROC %>% filter(V3 != 'CDS' & name !='NA') %>% count() %>% as.integer()
+GEN_N_TRUE <- GEN_N-GEN_N_HYP
+HYP_PERC <- round(GEN_N_HYP/GEN_N*100, 1)
+CONTIG_N <- length(unique(PROKKA_PROC$V1))
+RRNA_N_GEN <- PROKKA_PROC %>% filter(str_detect(PROKKA_PROC$V2,"barrnap") & V3 =="transcript") %>% count() %>% as.integer()
+TRNA_N_GEN <- PROKKA_PROC %>% filter(str_detect(PROKKA_PROC$V2,"Aragorn") & V3 =="transcript") %>% count() %>% as.integer()
+PIE <- data.frame(n=c(GEN_N_TRUE,GEN_N_HYP,RRNA_N_GEN,TRNA_N_GEN ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
 ```
 
-
-Output description 
-We found **`r gen_n` genes** from with **`r gen_n_hyp` were hypothetical** <span style="color:red">
-`r if(gen_n_hyp/gen_n > 0.7){
-"Too many hypothetical genes!"
-}` </span> on **`r contig_n` contigs**.
-
-We found **`r rrna_gen_n` rRNA** genes <span style="color:red">`r if (rrna_gen_n > 3){
-"You have more than expected rRNA genes for one species!"
-}`</span> and **`r trna_gen_n` tRNA** genes.
-
-
-
-```{r}
-
-fig <- plot_ly(pie, labels = ~Type, values = ~n,
-    marker = list(colors=c("#008b8b", "#ff8c00", "#9067a7", 
-                           "#dc143c", "#00bfff"))) %>% add_pie(hole = 0.6) %>% layout(title = "Sample composition",  showlegend = TRUE,
-                      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
-                      )
-  
-fig
+## General description
+General description of features founded by Prokka. 
+```{css, echo=FALSE}
+.center {
+  display: table;
+  margin-right: auto;
+  margin-left: auto;
+}
 ```
 
-## Composition and contig length
+<div class = 'center'>
 
 ```{r comp_plot}
+#margins
+M <- list(
+          l = 50,
+          r = 50,
+          b = 50,
+          t = 50,
+          pad = 4
+        )
 
+COMP_FIG <- plot_ly(PIE, labels = ~Type, values = ~n, width = 450, height = 450,
+    marker = list(colors=c("#008b8b", "#ff8c00", "#9067a7", 
+                           "#dc143c", "#00bfff"))) %>% 
+    add_pie(hole = 0.6) %>% layout(showlegend = TRUE,
+                                    margin = M,
+                                    legend = list(orientation = 'h'),
+                                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+COMP_FIG
+```
+</div>
+<center>
+Prokka founded **`r GEN_N` genes**, **`r GEN_N_HYP` were hypothetical** <span style="color:red; font-weight: bold">
+`r if(GEN_N_HYP/GEN_N > 0.7){
+"Too many hypothetical genes!"
+}` </span> Genese were located on **`r CONTIG_N` contigs**.
+
+There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
+"You have more than expected rRNA sequences for one species!"
+}`</span> and **`r TRNA_N_GEN` tRNA** genes.
+
+</center>
+## Composition and contig length plots
+Visualisation of features found on contigs compared with length of contigs.
+<div class = 'center'>
+```{r contig_plots, fig.width = 10, fig.height = 10}
 ### Data conversion 
 
-cont_len <- prokka_proc %>% select(V1, V5) %>% group_by(V1) %>% summarise(
-  cont_max = max(V5)
-)
+CONT_LEN <- PROKKA_PROC %>% select(V1, V5) %>% group_by(V1) %>% summarise(
+                                                                          cont_max = max(V5)
+                                                                          )
 
-cont_comp <- prokka_proc %>% select(V1, V2, name)
-cont_comp$name[!is.na(cont_comp$name)] <- "Gene"
-cont_comp$name[is.na(cont_comp$name)] <- "HypotheticalGene"
-cont_comp$name[str_detect(prokka_proc$V2,"barrnap")==TRUE] <- "rRNA"
-cont_comp$name[str_detect(prokka_proc$V2,"Aragorn")==TRUE] <- "tRNA"
+CONT_COMP <- PROKKA_PROC %>% select(V1, V2, name)
+CONT_COMP$name[!is.na(CONT_COMP$name)] <- "Gene"
+CONT_COMP$name[is.na(CONT_COMP$name)] <- "HypotheticalGene"
+CONT_COMP$name[str_detect(PROKKA_PROC$V2,"barrnap")==TRUE] <- "rRNA" #database name for rRNA from Prokka
+CONT_COMP$name[str_detect(PROKKA_PROC$V2,"Aragorn")==TRUE] <- "tRNA" #database name for tRNA from Prokka
 
-cont_tally <-cont_comp %>% select(V1, name) %>% count( V1,name)
+CONT_TALLY <-CONT_COMP %>% select(V1, name) %>% count( V1,name)
+CONT_TALLY <- reshape(CONT_TALLY, idvar = "V1",timevar = "name", direction = "wide")
+CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="V1" )
+CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
 
-cont_tally <- reshape(cont_tally, idvar = "V1",timevar = "name", direction = "wide")
-
-cont_tally <- merge(cont_len,cont_tally, by="V1" )
-
-cont_tally <- cont_tally %>% arrange(desc(cont_max))
-
-### Plots 
-
-fig <- plot_ly(cont_tally, y = ~V1, x = ~n.Gene, type = 'bar', orientation = 'h',
+## Plots 
+## Comp Plot
+CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~V1, x = ~n.Gene, type = 'bar', orientation = 'h',
         marker = list(color = 'rgb(0, 139, 139)'),
-                      text= cont_tally$n.Gene,textposition = 'inside', name = 'Gene',
+                      text= CONT_TALLY$n.Gene,textposition = 'inside', name = 'Gene',
         hovertemplate = paste('(%{x}, %{y})'))
-fig <- fig %>% add_trace(x = ~n.HypotheticalGene, marker = list(color = 'rgb(255, 140, 0)'),
-                         text= cont_tally$n.HypotheticalGene,textposition = 'inside', name = 'Hypothetical Gene')
-fig <- fig %>% add_trace(x = ~n.rRNA, marker = list(color = 'rgb(220,20,60)'),
-                         text= cont_tally$n.rRNA,textposition = 'inside', name = 'rRNA') 
-fig <- fig %>% add_trace(x = ~n.tRNA, marker = list(color = 'rgb(0,191,255)'),
-                         text= cont_tally$n.tRNA,textposition = 'inside', name = 'tRNA')
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~n.HypotheticalGene, marker = list(color = 'rgb(255, 140, 0)'),
+                         text= CONT_TALLY$n.HypotheticalGene,textposition = 'inside', name = 'Hypothetical Gene')
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~n.rRNA, marker = list(color = 'rgb(220,20,60)'),
+                         text= CONT_TALLY$n.rRNA,textposition = 'inside', name = 'rRNA') 
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~n.tRNA, marker = list(color = 'rgb(0,191,255)'),
+                         text= CONT_TALLY$n.tRNA,textposition = 'inside', name = 'tRNA')
 
-fig <- fig %>% layout(xaxis = list(title = "Gene count",
-                      showgrid = TRUE,
-                      showline = FALSE,
-                      showticklabels = TRUE,
-                      zeroline = FALSE,
-                      domain = c(0.15, 1)),
-                      yaxis = list(title = "Contigs",
-                      categoryorder= 'total ascending',
-                      showgrid = FALSE,
-                      showline = FALSE,
-                      showticklabels = TRUE,
-                      zeroline = FALSE),
-         barmode = 'stack',
-         paper_bgcolor = 'rgb(255, 255, 255)', plot_bgcolor = 'rgb(255, 255, 255)',
-         showlegend = TRUE) 
+CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
+                                                        showgrid = TRUE,
+                                                        showline = FALSE,
+                                                        showticklabels = TRUE,
+                                                        zeroline = FALSE,
+                                                        domain = c(0.15, 1)),
+                                                        yaxis = list(title = "Contigs",
+                                                        categoryorder= 'total ascending',
+                                                        showgrid = FALSE,
+                                                        showline = FALSE,
+                                                        showticklabels = TRUE,
+                                                        zeroline = FALSE
+                                                        ),
+                                           barmode = 'stack',
+                                           paper_bgcolor = 'rgb(255, 255, 255)', plot_bgcolor = 'rgb(255, 255, 255)',
+                                           showlegend = TRUE) 
 
 
-#### SECOND
-fig2 <- plot_ly(x = cont_tally$cont_max, y = cont_tally$V1, name = 'Contig length',
+##Length plot
+CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$V1, name = 'Contig length',
               type = 'bar', mode = 'markers',
               line = list(color = 'rgb(128, 0, 128)'),
-              text=cont_tally$cont_max, textposition = 'auto',
+              text=CONT_TALLY$cont_max, textposition = 'auto',
               hovertemplate = paste('(%{x}, %{y})')
               ) 
-fig2 <- fig2 %>% layout(yaxis = list(
+CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
                       categoryorder= 'total ascending',
                       showgrid = TRUE, 
                       showline = TRUE, 
@@ -144,19 +159,25 @@ fig2 <- fig2 %>% layout(yaxis = list(
                       side = 'down'),
          showlegend = FALSE) 
 
-fig_comb <- subplot(fig, fig2, shareY = TRUE, titleX = TRUE) 
-fig_comb
+COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
+COMBINED_CONT_FIG
 ```
+</div>
 
+## Output table
+Full Prokka output table presented from GTF file.
+```{r prokka_table}
 
-## Dynamic Table
-
-```{r}
-
-dtable <- datatable(prokka_proc, colnames = c("Contig", "Source", "Feature", "Start", "End","Score","Strand","Phase", "Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
+DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig", "Source", "Feature", "Start", "End","Score","Strand","Phase", "Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
     dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')))
 
-dtable
-#saveWidget(dtable, "dtable.html")
+DTABLE
+#saveWidget(DTABLE, "DTABLE.html")
 ```
-Citation for Prokka can be found: 
+
+##Version
+
+Prokka Version: **`r PROKKA_VERSION`**
+
+
+Citation for Prokka can be found under [DOI: 10.1093/bioinformatics/btu153](https://doi.org/10.1093/bioinformatics/btu153).
