@@ -16,7 +16,7 @@ library(plotly)
 ```{r data_read, echo=FALSE}
 PROKKA_INPUT_FILE <- "#RESULTSENV#"
 PROKKA_VERSION <- "#NAMEENV#"
-PROKKA_RAW <- read.delim(PROKKA_INPUT_FILE, header=FALSE)
+PROKKA_RAW <- read.delim(PROKKA_INPUT_FILE, header=FALSE, comment.char="#")
 
 PROKKA_PROC <- separate(PROKKA_RAW, V9, c(NA, "name"), remove = FALSE, "gene_name")
 ```

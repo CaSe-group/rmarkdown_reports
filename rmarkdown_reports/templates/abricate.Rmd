@@ -5,17 +5,17 @@
 input_file <- "#RESULTSENV#"
 sample_name <- "#NAMEENV#"
 
-abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
-database_name <- abricate_input %>% select (DATABASE)
-if(nrow(abricate_input)<1)
-  {message("There are no resistances in your sample!")}
-
 # calling libs
 suppressMessages(library(plotly))
 suppressMessages(library(ggplot2))
 suppressMessages(library(htmlwidgets))
 suppressMessages(library(dplyr))
 suppressMessages(library(DT))
+
+abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
+database_name <- abricate_input %>% select (DATABASE)
+if(nrow(abricate_input)<1)
+  {message("There are no resistances in your sample!")}
 ```
 
 ### Abricate report
