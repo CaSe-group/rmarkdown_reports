@@ -1,0 +1,162 @@
+---
+title: "Prokka"
+output:
+  html_document:
+    code_folding: "hide"
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+```{r libraries, echo=FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(DT)
+library(plotly)
+```
+
+
+## Raw data
+
+
+```{r data_read, echo=FALSE}
+prokka_raw <- read.delim("#RESULTSENV#", 
+                                             header=FALSE)
+
+
+prokka_proc <- separate (prokka_raw, V9, c(NA, "name"), remove = FALSE, "gene_name")
+```
+
+```{r text_parsing}
+gen_n <- prokka_proc %>% filter(V3 != 'CDS') %>% count() %>% as.integer()
+gen_n_hyp<- prokka_proc %>% filter(V3 != 'CDS' & name !='NA') %>% count() %>% as.integer()
+gen_true<- gen_n-gen_n_hyp
+hyp_perc <- round(gen_n_hyp/gen_n*100, 1)
+contig_n <- length(unique(prokka_proc$V1))
+rrna_gen_n <- prokka_proc %>% filter(str_detect(prokka_proc$V2,"barrnap") & V3 =="transcript") %>% count() %>% as.integer()
+trna_gen_n <- prokka_proc %>% filter(str_detect(prokka_proc$V2,"Aragorn") & V3 =="transcript") %>% count() %>% as.integer()
+pie <- data.frame(n=c(gen_true,gen_n_hyp,rrna_gen_n,trna_gen_n ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
+```
+
+
+Output description 
+We found **`r gen_n` genes** from with **`r gen_n_hyp` were hypothetical** <span style="color:red">
+`r if(gen_n_hyp/gen_n > 0.7){
+"Too many hypothetical genes!"
+}` </span> on **`r contig_n` contigs**.
+
+We found **`r rrna_gen_n` rRNA** genes <span style="color:red">`r if (rrna_gen_n > 3){
+"You have more than expected rRNA genes for one species!"
+}`</span> and **`r trna_gen_n` tRNA** genes.
+
+
+
+```{r}
+
+fig <- plot_ly(pie, labels = ~Type, values = ~n,
+    marker = list(colors=c("#008b8b", "#ff8c00", "#9067a7", 
+                           "#dc143c", "#00bfff"))) %>% add_pie(hole = 0.6) %>% layout(title = "Sample composition",  showlegend = TRUE,
+                      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+                      )
+  
+fig
+```
+
+## Composition and contig length
+
+```{r comp_plot}
+
+### Data conversion 
+
+cont_len <- prokka_proc %>% select(V1, V5) %>% group_by(V1) %>% summarise(
+  cont_max = max(V5)
+)
+
+cont_comp <- prokka_proc %>% select(V1, V2, name)
+cont_comp$name[!is.na(cont_comp$name)] <- "Gene"
+cont_comp$name[is.na(cont_comp$name)] <- "HypotheticalGene"
+cont_comp$name[str_detect(prokka_proc$V2,"barrnap")==TRUE] <- "rRNA"
+cont_comp$name[str_detect(prokka_proc$V2,"Aragorn")==TRUE] <- "tRNA"
+
+cont_tally <-cont_comp %>% select(V1, name) %>% count( V1,name)
+
+cont_tally <- reshape(cont_tally, idvar = "V1",timevar = "name", direction = "wide")
+
+cont_tally <- merge(cont_len,cont_tally, by="V1" )
+
+cont_tally <- cont_tally %>% arrange(desc(cont_max))
+
+### Plots 
+
+fig <- plot_ly(cont_tally, y = ~V1, x = ~n.Gene, type = 'bar', orientation = 'h',
+        marker = list(color = 'rgb(0, 139, 139)'),
+                      text= cont_tally$n.Gene,textposition = 'inside', name = 'Gene',
+        hovertemplate = paste('(%{x}, %{y})'))
+fig <- fig %>% add_trace(x = ~n.HypotheticalGene, marker = list(color = 'rgb(255, 140, 0)'),
+                         text= cont_tally$n.HypotheticalGene,textposition = 'inside', name = 'Hypothetical Gene')
+fig <- fig %>% add_trace(x = ~n.rRNA, marker = list(color = 'rgb(220,20,60)'),
+                         text= cont_tally$n.rRNA,textposition = 'inside', name = 'rRNA') 
+fig <- fig %>% add_trace(x = ~n.tRNA, marker = list(color = 'rgb(0,191,255)'),
+                         text= cont_tally$n.tRNA,textposition = 'inside', name = 'tRNA')
+
+fig <- fig %>% layout(xaxis = list(title = "Gene count",
+                      showgrid = TRUE,
+                      showline = FALSE,
+                      showticklabels = TRUE,
+                      zeroline = FALSE,
+                      domain = c(0.15, 1)),
+                      yaxis = list(title = "Contigs",
+                      categoryorder= 'total ascending',
+                      showgrid = FALSE,
+                      showline = FALSE,
+                      showticklabels = TRUE,
+                      zeroline = FALSE),
+         barmode = 'stack',
+         paper_bgcolor = 'rgb(255, 255, 255)', plot_bgcolor = 'rgb(255, 255, 255)',
+         showlegend = TRUE) 
+
+
+#### SECOND
+fig2 <- plot_ly(x = cont_tally$cont_max, y = cont_tally$V1, name = 'Contig length',
+              type = 'bar', mode = 'markers',
+              line = list(color = 'rgb(128, 0, 128)'),
+              text=cont_tally$cont_max, textposition = 'auto',
+              hovertemplate = paste('(%{x}, %{y})')
+              ) 
+fig2 <- fig2 %>% layout(yaxis = list(
+                      categoryorder= 'total ascending',
+                      showgrid = TRUE, 
+                      showline = TRUE, 
+                      showticklabels = FALSE,
+                      linecolor = 'rgb(102, 102, 102, 0.8)', 
+                      domain = c(0.15, 1)),
+                      xaxis = list(title = "Contig length",
+                      zeroline = FALSE, 
+                      showline = FALSE, 
+                      showticklabels = TRUE, 
+                      showgrid = TRUE,
+                      side = 'down'),
+         showlegend = FALSE) 
+
+fig_comb <- subplot(fig, fig2, shareY = TRUE, titleX = TRUE) 
+fig_comb
+```
+
+
+## Dynamic Table
+
+```{r}
+
+dtable <- datatable(prokka_proc, colnames = c("Contig", "Source", "Feature", "Start", "End","Score","Strand","Phase", "Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
+    dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')))
+
+dtable
+#saveWidget(dtable, "dtable.html")
+```
+Citation for Prokka can be found: 
