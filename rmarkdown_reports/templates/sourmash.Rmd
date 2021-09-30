@@ -1,78 +1,125 @@
-
+---
+title: "Taxonomic Classification"
+output: html_document
+---
 
 ```{r, echo = FALSE, message = FALSE}
+CLASSIFICATION_FILE <- "#RESULTSENV#"
+METAGENOME_FILE <- "#RESULTSENVMETA#"
+SAMPLE_NAME <- "#NAMEENV#"
+
 library(dplyr)
 library(ggplot2)
 library(plotly)
 library(stringr)
 
-if (file.exists("/input/61405654fce5c90bc660e0db.consensus_taxonomy.tsv")) {
-sourmash_data <-read.delim("/input/61405654fce5c90bc660e0db.consensus_taxonomy.tsv", sep=",", header=TRUE)
-} else { message("Input-file from sourmash-classification process missing!") }
+if (file.exists(CLASSIFICATION_FILE)) {
+	CLASSIFICATION_DATA <-read.delim(CLASSIFICATION_FILE, sep=",", header=TRUE)
+	CLASSIFICATION_DATA_EXIST <- TRUE
+} else { CLASSIFICATION_DATA_EXIST <- FALSE }
 
-if (file.exists("/input/61405654fce5c90bc660e0db.consensus__composition.csv")) {
-metagenomic_data <-read.delim("/input/61405654fce5c90bc660e0db.consensus__composition.csv", sep=",", header=TRUE)
-} else { message("Input-file from sourmash-metagenome process missing!") }
-```
-Status of the classification is: **`r sourmash_data[1,"status"]`**.
-
-The sample **#SAMPLE_IDENTIFICATION_NAME#** was identified as following:
-
-Level|Classification
--|-
-Superkingdom|`r strsplit(sourmash_data[1,"superkingdom"], '__')[[1]][2]`
-Phylum|`r strsplit(sourmash_data[1,"phylum"], '__')[[1]][2]`
-Class|`r strsplit(sourmash_data[1,"class"], '__')[[1]][2]`
-Order|`r strsplit(sourmash_data[1,"order"], '__')[[1]][2]`
-Family|`r strsplit(sourmash_data[1,"family"], '__')[[1]][2]`
-Genus|`r strsplit(sourmash_data[1,"genus"], '__')[[1]][2]`
-Species|`r strsplit(sourmash_data[1,"species"], '__')[[1]][2]`
-Strain|`r strsplit(toString(sourmash_data[1,"strain"]), '__')[[1]][2]`
-
-Probability for this organism is **`r metagenomic_data$f_match[grep(strsplit(sourmash_data[1,"species"], '__')[[1]][2], metagenomic_data$name)]`**.
-
-## Contigs
-
-Distribution of bp according to the found organisms:
-```{r, echo = FALSE}
-organism_list <- list(metagenomic_data$name)
-for (element in 1:length(organism_list[[1]])) {
-  organism_list[[1]][element] <- str_remove(toString(strsplit(organism_list[[1]][element], ' ')[[1]][2:3]), ',')
+if (CLASSIFICATION_DATA_EXIST) {
+	SOURMASH_STATUS <- CLASSIFICATION_DATA[1,"status"]
+	SOURMASH_SUPERKINGDOM <- strsplit(toString(CLASSIFICATION_DATA[1,"superkingdom"]), '__')[[1]][2]
+	SOURMASH_PHYLUM <- strsplit(toString(CLASSIFICATION_DATA[1,"phylum"]), '__')[[1]][2]
+	SOURMASH_CLASS <- strsplit(toString(CLASSIFICATION_DATA[1,"class"]), '__')[[1]][2]
+	SOURMASH_ORDER <- strsplit(toString(CLASSIFICATION_DATA[1,"order"]), '__')[[1]][2]
+	SOURMASH_FAMILY <- strsplit(toString(CLASSIFICATION_DATA[1,"family"]), '__')[[1]][2]
+	SOURMASH_GENUS <- strsplit(toString(CLASSIFICATION_DATA[1,"genus"]), '__')[[1]][2]
+	SOURMASH_SPECIES <- strsplit(toString(CLASSIFICATION_DATA[1,"species"]), '__')[[1]][2]
+	SOURMASH_STRAIN <- strsplit(toString(CLASSIFICATION_DATA[1,"strain"]), '__')[[1]][2]
 }
 
-bp_count_list <- list(metagenomic_data$intersect_bp)
-column_name_list <- c("organism", "bp_count")
-organism_bp_data <- data.frame(organism_list, as.numeric(unlist(bp_count_list)))
-colnames(organism_bp_data) <- column_name_list
+if (file.exists(METAGENOME_FILE)) {
+	METAGENMOIC_DATA <-read.delim(METAGENOME_FILE, sep=",", header=TRUE)
+	METAGENMOIC_DATA_EXIST <- TRUE
+} else {
+	METAGENMOIC_DATA_EXIST <- FALSE
+	GREP_F_MATCH <- FALSE
+}
 
-pie_chart <- plot_ly(organism_bp_data, labels = ~organism, values = ~bp_count, type = 'pie',
-              insidetextorientation = 'radial',
-              textposition = 'inside',
-              textinfo = 'label+percent',
-              insidetextfont = list(color = '#FFFFFF'),
-              hoverinfo = 'label+text',
-              text = ~paste(bp_count, ' bp'),
-              marker = list(colors = colors,
-                            line = list(color = '#FFFFFF', width = 1)),
-              showlegend = FALSE)
-pie_chart <- pie_chart %>% layout(
-         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-
-pie_chart
+if (METAGENMOIC_DATA_EXIST) {
+	if (CLASSIFICATION_DATA_EXIST) {
+		if (SOURMASH_SPECIES != "NA") {
+    		F_MATCH_VALUE <- round(METAGENMOIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENMOIC_DATA$name)],2)
+    		GREP_F_MATCH <- TRUE
+    	} else if (SOURMASH_GENUS != "NA") {
+    		F_MATCH_VALUE <- round(METAGENMOIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENMOIC_DATA$name)],2)
+    		GREP_F_MATCH <- TRUE
+    	} else {
+			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENMOIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
+			F_MATCH_VALUE <- round(METAGENMOIC_DATA$f_match[1],2)
+			GREP_F_MATCH <- FALSE
+    	}
+	} else {
+		METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENMOIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
+		F_MATCH_VALUE <- round(METAGENMOIC_DATA$f_match[1],2)
+		GREP_F_MATCH <- FALSE
+  	}
+}
 ```
 
-## Command & Version
+`r if(CLASSIFICATION_DATA_EXIST) {
+	sprintf("Status of the classification is: **%s**.", SOURMASH_STATUS)
+	sprintf("The sample **%s** was identified as following:\n\n
+Level|Classification
+-|-
+Superkingdom|%s
+Phylum|%s
+Class|%s
+Order|%s
+Family|%s
+Genus|%s
+Species|%s
+Strain|%s", 
+	SAMPLE_NAME,SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS, SOURMASH_ORDER,
+	SOURMASH_FAMILY, SOURMASH_GENUS, SOURMASH_SPECIES, SOURMASH_STRAIN)
+} else {
+	sprintf("Classification of the sample **failed**.")
+}`
 
-Sourmash-Version: #SOURMASH_VERSION#
+`r if(METAGENMOIC_DATA_EXIST & GREP_F_MATCH) {
+	sprintf("Probability for this organism is **%s**.", F_MATCH_VALUE)
+} else if (METAGENMOIC_DATA_EXIST & !GREP_F_MATCH) {
+	sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s**",
+	METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
+}`
 
-Following commands were used to generate this results:
+`r if (METAGENMOIC_DATA_EXIST) {
+	sprintf("### Contigs\n\nDistribution of bp according to the found organisms:")
+}`
 
+```{r, echo = FALSE}
+if (METAGENMOIC_DATA_EXIST) {
+	ORGANISM_LIST <- list(METAGENMOIC_DATA$name)
+	for (ELEMENT in 1:length(ORGANISM_LIST[[1]])) {
+		ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][2:3]), ',')
+	}
+
+	BP_COUNT_LIST <- list(METAGENMOIC_DATA$intersect_bp)
+	COLUMN_NAME_LIST <- c("ORGANISM", "BP_COUNT")
+	ORGANISM_BP_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(BP_COUNT_LIST)))
+	colnames(ORGANISM_BP_DATA) <- COLUMN_NAME_LIST
+
+	CONTIG_PIE_CHART <- plot_ly(ORGANISM_BP_DATA, labels = ~ORGANISM, values = ~BP_COUNT, type = 'pie',
+                		insidetextorientation = 'radial',
+                		textposition = 'inside',
+                		textinfo = 'percent',
+                		insidetextfont = list(color = '#FFFFFF'),
+                		hoverinfo = 'label+text',
+                		text = ~paste(BP_COUNT, ' bp'),
+                		marker = list(colors = colors,
+                              		line = list(color = '#FFFFFF', width = 1))
+					)
+	CONTIG_PIE_CHART <- CONTIG_PIE_CHART %>% layout(
+          				xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          				yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+					)
+
+	CONTIG_PIE_CHART
+}
 ```
-insert commands
-```
 
-## Citation
+### Citation
 
 Citation for Sourmash can be found under [DOI: 10.21105/joss.00027](https://www.doi.org/10.21105/joss.00027).
-
