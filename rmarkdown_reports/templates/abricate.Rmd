@@ -15,7 +15,7 @@ suppressMessages(library(dplyr))
 suppressMessages(library(DT))
 ```
 
-### Report templates
+### Abricate
 
 #### Description
 
