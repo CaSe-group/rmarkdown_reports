@@ -6,6 +6,9 @@ input_file <- "#RESULTSENV#"
 sample_name <- "#NAMEENV#"
 
 abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
+database_name <- abricate_input %>% select (DATABASE)
+if(nrow(abricate_input)<1)
+  {message("There are no resistances in your sample!")}
 
 # calling libs
 suppressMessages(library(plotly))
@@ -15,30 +18,18 @@ suppressMessages(library(dplyr))
 suppressMessages(library(DT))
 ```
 
-### Report templates
+### Abricate report
 
 #### Description
 
-This sample contains `r nrow(abricate_input)`" resistance genes.
-Which Database is used .. ncbi
-
+Abricate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.
+---
+This `r sample_name` contains `r nrow(abricate_input)` resistance genes. 
+Determined by Abricate using `r database_name [!duplicated(database_name),]` Database. 
 
 #### Results
 <!-- simple table, #RESULTSENV# will be replaced via nextflow process -->
-```{r,echo=FALSE}
-# Produce Table
-selected_input <- abricate_input %>% select(SEQUENCE, START, END, STRAND, GENE, ACCESSION, PRODUCT, RESISTANCE)
-datatable(selected_input, extensions = 'Buttons', options = list(
-  searching = TRUE,
-  pageLength = 10,
-  lengthMenu = c(5, 10, 15, 20),
-  buttons = c('copy', 'csv', 'excel', 'colvis')
-))
-```
-
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
-
-
 
 # remove duplicates
 df <- abricate_input %>% select(GENE, RESISTANCE)
@@ -47,21 +38,21 @@ df_mod <- df [!duplicated(df),]
 # parcing columns into lists
 gene <- c(df_mod$GENE)
 resistance <- c(df_mod$RESISTANCE)
+resistance_unique <- resistance[!duplicated(resistance)]
 sample <- c(sample_name)
 empty <- c('')
 
 # count list elements
 gene_count = length (gene)
-resistance_count = length (resistance)
+resistance_count = length (resistance_unique)
 
 # list for Sample_Name
-sample_list<- rep(sample, resistance_count)
+sample_name_unique <- rep(sample, resistance_count)
 
 # append lists
-label_list <- append(sample, resistance)
-parent_list <- append(empty, sample_list)
+label_list <- append(sample, resistance_unique)
+parent_list <- append(empty, sample_name_unique)
 
-# append list
 labels_final <- append(label_list, gene)
 parents_final <- append(parent_list, resistance)
 
@@ -71,13 +62,25 @@ plot_ly(
   parents = parents_final,
   type = 'sunburst'
 )
-
 ```
-**Figure.1**: Interactive sunburst chart showing the detected resistances in the sample. The first ring shows the resistances and the second the associated resistance genes. Plot can be saved in the right upper corner.
+**Fig.1**: Interactive sunburst chart showing the detected resistances in `r sample_name`. The first ring shows the resistances and the second the associated resistance genes. Plot can be saved in the right upper corner.
 
+**Tab.1**: Abricate output 
+```{r,echo=FALSE}
+# Produce Table
+
+selected_input <- abricate_input %>% select(SEQUENCE, START, END, STRAND, GENE, ACCESSION, PRODUCT, RESISTANCE)
+datatable(selected_input, extensions = 'Buttons', options = list(
+  searching = TRUE,
+  pageLength = 10,
+  lengthMenu = c(5, 10, 15, 20),
+  buttons = c('copy', 'csv', 'excel', 'colvis')
+))
+```
 
 #### Citation
 If you publish the results use following citation:
 
 Seemann T, Abricate, Github https://github.com/tseemann/abricate
 NCBI AMRFinderPlus - doi: 10.1128/AAC.00483-19
+
