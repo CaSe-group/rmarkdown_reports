@@ -40,7 +40,7 @@ TRNA_N_GEN <- PROKKA_PROC %>% filter(str_detect(PROKKA_PROC$V2,"Aragorn") & V3 =
 PIE <- data.frame(n=c(GEN_N_TRUE,GEN_N_HYP,RRNA_N_GEN,TRNA_N_GEN ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
 ```
 
-## General description
+### General description
 General description of features founded by Prokka. 
 ```{css, echo=FALSE}
 .center {
@@ -85,11 +85,11 @@ There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bo
 }`</span> and **`r TRNA_N_GEN` tRNA** genes.
 
 </center>
-## Composition and contig length plots
+### Composition and contig length plots
 Visualisation of features found on contigs compared with length of contigs.
 <div class = 'center'>
 ```{r contig_plots, fig.width = 10, fig.height = 10}
-### Data conversion 
+#### Data conversion 
 
 CONT_LEN <- PROKKA_PROC %>% select(V1, V5) %>% group_by(V1) %>% summarise(
                                                                           cont_max = max(V5)
@@ -175,7 +175,7 @@ DTABLE
 #saveWidget(DTABLE, "DTABLE.html")
 ```
 
-##Version
+###Version
 
 Prokka Version: **`r PROKKA_VERSION`**
 
