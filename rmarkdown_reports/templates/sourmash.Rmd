@@ -1,7 +1,4 @@
----
-title: "Taxonomic Classification"
-output: html_document
----
+### Sourmash
 
 ```{r, echo = FALSE, message = FALSE}
 CLASSIFICATION_FILE <- "#RESULTSENV#"
@@ -86,7 +83,7 @@ Strain|%s",
 }`
 
 `r if (METAGENMOIC_DATA_EXIST) {
-	sprintf("### Contigs\n\nDistribution of bp according to the found organisms:")
+	sprintf("#### Contigs\n\nDistribution of bp according to the found organisms:")
 }`
 
 ```{r, echo = FALSE}
@@ -120,6 +117,6 @@ if (METAGENMOIC_DATA_EXIST) {
 }
 ```
 
-### Citation
+#### Citation
 
 Citation for Sourmash can be found under [DOI: 10.21105/joss.00027](https://www.doi.org/10.21105/joss.00027).

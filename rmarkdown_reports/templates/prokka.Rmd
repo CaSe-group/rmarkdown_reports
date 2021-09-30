@@ -1,14 +1,18 @@
----
-title: "Prokka"
-output:
-  html_document:
-    theme: lumen
-    code_folding: "hide"
----
+### Prokka
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
+
+```{r libraries, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(DT)
+library(plotly)
+```
+
 ```{r data_read, echo=FALSE}
 PROKKA_INPUT_FILE <- "#RESULTSENV#"
 PROKKA_VERSION <- "#NAMEENV#"
@@ -20,14 +24,7 @@ Prokka is a software tool to annotate bacterial, archaeal and viral genomes quic
 
 Source: [link](https://github.com/tseemann/prokka)
 
-```{r libraries, echo=FALSE}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(DT)
-library(plotly)
-```
+
 
 ```{r text_parsing}
 GEN_N <- PROKKA_PROC %>% filter(V3 != 'CDS') %>% count() %>% as.integer()
