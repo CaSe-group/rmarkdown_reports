@@ -164,7 +164,7 @@ COMBINED_CONT_FIG
 ```
 </div>
 
-## Output table
+### Output table
 Full Prokka output table presented from GTF file.
 ```{r prokka_table}
 
