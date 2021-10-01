@@ -60,7 +60,7 @@ plot_ly(
 **Fig.1**: Interactive sunburst chart showing the detected resistances in `r sample_name`. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.
 
-##### Detail Informations
+#### Detail Informations
 <!-- simple table, #RESULTSENV# will be replaced via nextflow process -->
 **Tab.1**: Interaktiv table shows the abricate raw data. You can filter and download the data directly.
 ```{r,echo=FALSE}
