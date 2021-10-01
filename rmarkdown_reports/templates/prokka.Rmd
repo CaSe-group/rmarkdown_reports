@@ -26,9 +26,6 @@ PROKKA_RAW <- na.omit(PROKKA_RAW)
 PROKKA_PROC <- separate(PROKKA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
 PROKKA_PROC$name <- gsub(";.*","",PROKKA_PROC$name)
 ```
-Prokka is a software tool to annotate bacterial, archaeal and viral genomes quickly and produce standards-compliant output files. 
-
-Source: [link](https://github.com/tseemann/prokka)
 
 ```{r text_parsing}
 GEN_N <- PROKKA_PROC %>% filter(X3 != 'CDS') %>% count() %>% as.integer()
@@ -40,11 +37,17 @@ RRNA_N_GEN <- PROKKA_PROC %>% filter(X3 =="rRNA") %>% count() %>% as.integer()
 TRNA_N_GEN <- PROKKA_PROC %>% filter(X3 =="tRNA") %>% count() %>% as.integer()
 PIE <- data.frame(n=c(GEN_N_TRUE,GEN_N_HYP,RRNA_N_GEN,TRNA_N_GEN ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
 ```
+Prokka is a software tool to annotate bacterial, archaeal and viral genomes quickly and produce standards-compliant output files. 
+[Prokka Github](https://github.com/tseemann/prokka)
 
-#### General description
-General description of features founded by Prokka. 
+Prokka founded **`r GEN_N` genes**, **`r GEN_N_HYP` were hypothetical** <span style="color:red; font-weight: bold">
+`r if(GEN_N_HYP/GEN_N > 0.7){
+"Too many hypothetical genes!"
+}` </span> Genese were located on **`r CONTIG_N` contigs**.
 
-
+There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
+"You have more than expected rRNA sequences for one species!"
+}`</span> and **`r TRNA_N_GEN` tRNA** genes.
 ```{r comp_plot}
 #margins
 M <- list(
@@ -66,20 +69,13 @@ COMP_FIG <- plot_ly(PIE, labels = ~Type, values = ~n, width = 450, height = 450,
 
 COMP_FIG
 ```
+Genes denotes genes that Prokka found in its databases, hypothetical genes are potential genes that were predicted but could not be found at the database, tRNA and rRNA denotes genes that were attributed to tRNA and rRNA genes. 
+Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download currently displayed plot as a png file.  
 
-Prokka founded **`r GEN_N` genes**, **`r GEN_N_HYP` were hypothetical** <span style="color:red; font-weight: bold">
-`r if(GEN_N_HYP/GEN_N > 0.7){
-"Too many hypothetical genes!"
-}` </span> Genese were located on **`r CONTIG_N` contigs**.
-
-There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
-"You have more than expected rRNA sequences for one species!"
-}`</span> and **`r TRNA_N_GEN` tRNA** genes.
-
-
-#### Composition and contig length plots
+#### **Composition and contig length plots**
 Visualisation of features found on contigs compared with length of contigs.
-```{r contig_plots, fig.width = 10, fig.height = 10}
+
+```{r data_for_plots}
 #### Data conversion 
 
 CONT_LEN <- PROKKA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
@@ -97,6 +93,19 @@ CONT_TALLY <-spread(CONT_TALLY, key = "name", value = "n")
 CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="X1" )
 CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
 
+#### Fig dimensions
+len <- nrow(CONT_LEN)
+if(len < 9){
+len <- 2
+}
+
+dimension <- len * 0.14
+
+if(dimension < 2){
+dimension <- 4
+}
+```
+```{r contig_plots, fig.width = dimension, fig.height = dimension}
 #### Plots 
 #### Comp Plot
 CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~Gene, type = 'bar', orientation = 'h',
@@ -153,9 +162,10 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
 ```
+Pointing a bar will display more details about currently shown element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the right corner on camera allows to download currently displayed plot as a png file.
 
-#### Output table
-Full Prokka output table presented from GTF file.
+#### **Output table**
+Full Prokka output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 ```{r prokka_table}
 
 DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig", "Source", "Feature", "Start", "End","Score","Strand","Phase", "Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
@@ -164,8 +174,9 @@ DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig", "Source", "Feature", "St
 DTABLE
 #saveWidget(DTABLE, "DTABLE.html")
 ```
+The table is fully interactive and searchable. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 
-#### Version
+#### **Version**
 
 Prokka Version: **`r PROKKA_VERSION`**
 
