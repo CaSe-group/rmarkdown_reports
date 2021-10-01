@@ -23,7 +23,7 @@ if(nrow(abricate_input)<1)
 #### Description
 
 Abricate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.
----
+
 This `r sample_name` contains `r nrow(abricate_input)` resistance genes. 
 Determined by Abricate using `r database_name [!duplicated(database_name),]` Database. 
 

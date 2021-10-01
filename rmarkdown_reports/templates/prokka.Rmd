@@ -1,7 +1,7 @@
 ### Prokka
 
 ```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo=FALSE) 
 ```
 ```{r libraries, echo=FALSE}
 library(ggplot2)
@@ -16,7 +16,8 @@ library(plotly)
 ```{r data_read, echo=FALSE}
 PROKKA_INPUT_FILE <- "#RESULTSENV#"
 PROKKA_VERSION <- "#NAMEENV#"
-PROKKA_RAW <- read_delim(#RESULTSENV#, 
+
+PROKKA_RAW <- read_delim(PROKKA_INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
     col_names = FALSE, comment = c("#"), trim_ws = TRUE)
 
@@ -40,17 +41,9 @@ TRNA_N_GEN <- PROKKA_PROC %>% filter(X3 =="tRNA") %>% count() %>% as.integer()
 PIE <- data.frame(n=c(GEN_N_TRUE,GEN_N_HYP,RRNA_N_GEN,TRNA_N_GEN ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
 ```
 
-## General description
+#### General description
 General description of features founded by Prokka. 
-```{css, echo=FALSE}
-.center {
-  display: table;
-  margin-right: auto;
-  margin-left: auto;
-}
-```
 
-<div class = 'center'>
 
 ```{r comp_plot}
 #margins
@@ -73,8 +66,7 @@ COMP_FIG <- plot_ly(PIE, labels = ~Type, values = ~n, width = 450, height = 450,
 
 COMP_FIG
 ```
-</div>
-<center>
+
 Prokka founded **`r GEN_N` genes**, **`r GEN_N_HYP` were hypothetical** <span style="color:red; font-weight: bold">
 `r if(GEN_N_HYP/GEN_N > 0.7){
 "Too many hypothetical genes!"
@@ -84,12 +76,11 @@ There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bo
 "You have more than expected rRNA sequences for one species!"
 }`</span> and **`r TRNA_N_GEN` tRNA** genes.
 
-</center>
-## Composition and contig length plots
+
+#### Composition and contig length plots
 Visualisation of features found on contigs compared with length of contigs.
-<div class = 'center'>
 ```{r contig_plots, fig.width = 10, fig.height = 10}
-### Data conversion 
+#### Data conversion 
 
 CONT_LEN <- PROKKA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
                                                                           cont_max = max(X5)
@@ -106,8 +97,8 @@ CONT_TALLY <-spread(CONT_TALLY, key = "name", value = "n")
 CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="X1" )
 CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
 
-## Plots 
-## Comp Plot
+#### Plots 
+#### Comp Plot
 CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~Gene, type = 'bar', orientation = 'h',
         marker = list(color = 'rgb(0, 139, 139)'),
                       text= CONT_TALLY$n.Gene,textposition = 'inside', name = 'Gene',
@@ -137,7 +128,7 @@ CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
                                            showlegend = TRUE) 
 
 
-##Length plot
+#### Length plot
 CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$X1, name = 'Contig length',
               type = 'bar', mode = 'markers',
               line = list(color = 'rgb(128, 0, 128)'),
@@ -162,9 +153,8 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
 ```
-</div>
 
-## Output table
+#### Output table
 Full Prokka output table presented from GTF file.
 ```{r prokka_table}
 
@@ -175,7 +165,7 @@ DTABLE
 #saveWidget(DTABLE, "DTABLE.html")
 ```
 
-##Version
+#### Version
 
 Prokka Version: **`r PROKKA_VERSION`**
 
