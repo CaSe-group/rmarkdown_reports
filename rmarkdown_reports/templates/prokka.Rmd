@@ -41,10 +41,10 @@ Prokka is a software tool to annotate bacterial, archaeal and viral genomes quic
 Prokka founded **`r GEN_N` genes**, **`r GEN_N_HYP` were hypothetical** <span style="color:red; font-weight: bold">
 `r if(GEN_N_HYP/GEN_N > 0.7){
 "Too many hypothetical genes!"
-}` </span> Genese were located on **`r CONTIG_N` contigs**.
+}` </span> Genes were located on **`r CONTIG_N` contigs**.
 
 There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
-"You have more than expected rRNA sequences for one species!"
+"You have more rRNA sequences than expected for one species!"
 }`</span> and **`r TRNA_N_GEN` tRNA** genes.
 ```{r}
 #margins
