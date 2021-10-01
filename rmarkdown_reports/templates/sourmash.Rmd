@@ -1,9 +1,7 @@
 ### Sourmash
 
-Sourmash is a command-line tool and Python library for comparison of DNA sequences and plotting the results. Further it 
-includes the function of "k-mer" (DNA-strings of length k) based taxonomic exploration as well as classification routines for genome 
-and metagenome analysis, which are utilized here. Therefore a "Genome Taxonomy Database" (GTDB), provided by sourmash, is used for
-classification, which contains ~ 258k genomes.
+Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").  
+Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.
 
 ```{r, echo = FALSE, message = FALSE}
 CLASSIFICATION_FILE <- "#RESULTSENV#"
@@ -64,8 +62,8 @@ if (METAGENOMIC_DATA_EXIST) {
 `r if(CLASSIFICATION_DATA_EXIST) {
 	sprintf("Status of the classification is: **%s**.", SOURMASH_STATUS)
 	sprintf("The sample **%s** was identified as following:\n
-**Table 1: Taxonomic classification of sample %s.**\n
-Level|Classification
+**Table 1: Taxonomic classification of sample %s.**  NA means that sourmash was unable to classify this taxonomic rank.\n
+Taxonomic rank|Identified taxonomy
 -|-
 Superkingdom|%s
 Phylum|%s
@@ -82,16 +80,15 @@ Strain|%s",
 }`
 
 `r if(METAGENOMIC_DATA_EXIST & GREP_F_MATCH) {
-	sprintf("Probability for this organism is **%s**.\n", F_MATCH_VALUE)
+	sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
 } else if (METAGENOMIC_DATA_EXIST & !GREP_F_MATCH) {
-	sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s**.\n",
+	sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
 	METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
 }`
 
 `r if (METAGENOMIC_DATA_EXIST) {
-	sprintf("#### **Distribution of found organisms**\n\nThe following diagramm gives a overview about the distribution of all found
-	organisms in the provided DNA-sequences. It is based on the approximate number of base pairs in common between the DNA-sequence(s)
-	to classify and the accordingly matched organism in the database (\"intersect_bp\").  
+	sprintf("#### **Distribution of identified organisms.**\n\n  The following chart gives a overview about all identified 
+	organisms in the sample. It is based on how many bases belong to each organism ( called \"intersect_bp\").  
 	The diagram is interactive so that upon hovering over a part of it the organism and according intersecting bp are showed. Further 
 	organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
 	provided in the upper right corner while hovering over it.")
@@ -129,13 +126,13 @@ if (METAGENOMIC_DATA_EXIST) {
 ```
 
 `r if (METAGENOMIC_DATA_EXIST) {
-	sprintf("**Figure 1: Distribution of all found organisms in sample %s.** The distribution is based on the approximate number of
-		base pairs in common between the queried DNA-sequences and the matched organism.\n\n", SAMPLE_NAME)
+	sprintf("**Figure 1: Distribution of all identified organisms in the sample %s.**   
+	    The chart is divided by the number of bases belonging to each identified organism. \n\n", SAMPLE_NAME)
 }`
 
 #### **Citation**
 
-Upon usage of this tool cite sourmash as follows:
+When publishing this data cite sourmash as follows:
 "Brown et al, (2016), sourmash: a library for MinHash sketching of DNA,
 Journal of Open Source Software, 1(5), 27, doi:10.21105/joss.00027"
 
