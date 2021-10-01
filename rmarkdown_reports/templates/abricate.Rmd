@@ -1,12 +1,22 @@
 <!-- Report template, please replace {TOOL}  -->
 
 ```{r,echo=FALSE}
+# Only change this variables
+input_file <- "#RESULTSENV#"
+sample_name <- "#NAMEENV#"
+
 # calling libs
 suppressMessages(library(plotly))
 suppressMessages(library(ggplot2))
 suppressMessages(library(htmlwidgets))
 suppressMessages(library(dplyr))
 suppressMessages(library(DT))
+
+abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
+database_name <- abricate_input %>% select (DATABASE)
+if(nrow(abricate_input)<1)
+  {message("There are no resistances in your sample!")}
+```
 
 # Only change this variables
 input_file <- "#RESULTSENV#"
@@ -22,7 +32,6 @@ ABRicate is a tool for mass screening of contigs for antimicrobial resistance or
 The Sample `r sample_name` contains `r nrow(abricate_input)` resistance genes. 
 Determined by Abricate using the `r database_name [!duplicated(database_name),]` Database. 
 
-#### Figure
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
 
 # remove duplicates
@@ -60,9 +69,8 @@ plot_ly(
 **Fig.1**: Interactive sunburst chart showing the detected resistances in `r sample_name`. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.
 
-#### Detail Informations
-<!-- simple table, #RESULTSENV# will be replaced via nextflow process -->
-**Tab.1**: Interaktiv table shows the abricate raw data. You can filter and download the data directly.
+#### Detailed resistance gene table
+**Tab.1**: Interaktive table showing the abricate raw data. You can filter and download the table directly.
 ```{r,echo=FALSE}
 # Produce Table
 
