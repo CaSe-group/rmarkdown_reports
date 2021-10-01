@@ -18,6 +18,9 @@ output:
     code_folding: "hide"
 ---
 
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo=FALSE) 
+```
 
 # Samples {.tabset}
 
