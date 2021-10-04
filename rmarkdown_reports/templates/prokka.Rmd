@@ -91,6 +91,19 @@ CONT_TALLY <-spread(CONT_TALLY, key = "name", value = "n")
 CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="X1" )
 CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
 
+if (!"Gene" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$Gene <- 0
+}
+if (!"HypotheticalGene" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$HypotheticalGene <- 0
+}
+if (!"tRNA" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$tRNA <- 0
+}
+if (!"rRNA" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$rRNA <- 0
+}
+
 #### Fig dimensions
 len <- nrow(CONT_LEN)
 if(len < 9){
