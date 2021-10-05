@@ -14,7 +14,7 @@ library(plotly)
 library(stringr)
 
 if (file.exists(CLASSIFICATION_FILE)) {
-	CLASSIFICATION_DATA <-read.delim(CLASSIFICATION_FILE, sep=",", header=TRUE)
+	CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
 	CLASSIFICATION_DATA_EXIST <- TRUE
 } else { CLASSIFICATION_DATA_EXIST <- FALSE }
 
@@ -40,10 +40,10 @@ if (file.exists(METAGENOME_FILE)) {
 
 if (METAGENOMIC_DATA_EXIST) {
 	if (CLASSIFICATION_DATA_EXIST) {
-		if (SOURMASH_SPECIES != "NA") {
+		if (!is.na(SOURMASH_SPECIES)) {
     		F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENOMIC_DATA$name)],2)
     		GREP_F_MATCH <- TRUE
-    	} else if (SOURMASH_GENUS != "NA") {
+    	} else if (!is.na(SOURMASH_GENUS)) {
     		F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENOMIC_DATA$name)],2)
     		GREP_F_MATCH <- TRUE
     	} else {
