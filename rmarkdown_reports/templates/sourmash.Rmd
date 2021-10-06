@@ -31,7 +31,7 @@ if (CLASSIFICATION_DATA_EXIST) {
 }
 
 if (file.exists(METAGENOME_FILE)) {
-	METAGENOMIC_DATA <-read.delim(METAGENOME_FILE, sep=",", header=TRUE)
+	METAGENOMIC_DATA <-read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
 	METAGENOMIC_DATA_EXIST <- TRUE
 } else {
 	METAGENOMIC_DATA_EXIST <- FALSE
@@ -39,23 +39,28 @@ if (file.exists(METAGENOME_FILE)) {
 }
 
 if (METAGENOMIC_DATA_EXIST) {
-	if (CLASSIFICATION_DATA_EXIST) {
-		if (!is.na(SOURMASH_SPECIES)) {
-    		F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENOMIC_DATA$name)],2)
-    		GREP_F_MATCH <- TRUE
-    	} else if (!is.na(SOURMASH_GENUS)) {
-    		F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENOMIC_DATA$name)],2)
-    		GREP_F_MATCH <- TRUE
-    	} else {
+	if (!is.na(METAGENOMIC_DATA$f_match[1]) & !is.na(METAGENOMIC_DATA$name[1])) {
+		METAGENOMIC_DATA_NOT_EMPTY <- TRUE
+		if (CLASSIFICATION_DATA_EXIST) {
+			if (!is.na(SOURMASH_SPECIES)) {
+    			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENOMIC_DATA$name)],2)
+    			GREP_F_MATCH <- TRUE
+    		} else if (!is.na(SOURMASH_GENUS)) {
+    			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENOMIC_DATA$name)],2)
+    			GREP_F_MATCH <- TRUE
+    		} else {
+				METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
+				F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
+				GREP_F_MATCH <- FALSE
+    		}
+		} else {
 			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
 			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
 			GREP_F_MATCH <- FALSE
-    	}
-	} else {
-		METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
-		F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
-		GREP_F_MATCH <- FALSE
-  	}
+  		}
+	} else{
+		METAGENOMIC_DATA_NOT_EMPTY <- FALSE
+	}
 }
 ```
 
@@ -79,14 +84,16 @@ Strain|%s",
 	sprintf("Classification of the sample **failed**.")
 }`
 
-`r if(METAGENOMIC_DATA_EXIST & GREP_F_MATCH) {
+`r if(METAGENOMIC_DATA_NOT_EMPTY & GREP_F_MATCH) {
 	sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
-} else if (METAGENOMIC_DATA_EXIST & !GREP_F_MATCH) {
+} else if (METAGENOMIC_DATA_NOT_EMPTY & !GREP_F_MATCH) {
 	sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
 	METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
+} else if (!METAGENOMIC_DATA_NOT_EMPTY) {
+	sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 }`
 
-`r if (METAGENOMIC_DATA_EXIST) {
+`r if (METAGENOMIC_DATA_NOT_EMPTY) {
 	sprintf("#### **Distribution of identified organisms.**\n\n  The following chart gives a overview about all identified 
 	organisms in the sample. It is based on how many bases belong to each organism ( called \"intersect_bp\").  
 	The diagram is interactive so that upon hovering over a part of it the organism and according intersecting bp are showed. Further 
@@ -95,7 +102,7 @@ Strain|%s",
 }`
 
 ```{r, echo = FALSE}
-if (METAGENOMIC_DATA_EXIST) {
+if (METAGENOMIC_DATA_NOT_EMPTY) {
 	ORGANISM_LIST <- list(METAGENOMIC_DATA$name)
 	for (ELEMENT in 1:length(ORGANISM_LIST[[1]])) {
 		ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][2:3]), ',')
@@ -125,7 +132,7 @@ if (METAGENOMIC_DATA_EXIST) {
 }
 ```
 
-`r if (METAGENOMIC_DATA_EXIST) {
+`r if (METAGENOMIC_DATA_NOT_EMPTY) {
 	sprintf("**Figure 1: Distribution of all identified organisms in the sample %s.**   
 	    The chart is divided by the number of bases belonging to each identified organism. \n\n", SAMPLE_NAME)
 }`
