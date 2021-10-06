@@ -39,34 +39,35 @@ if (file.exists(METAGENOME_FILE)) {
 }
 
 if (METAGENOMIC_DATA_EXIST) {
+	F_MATCH_VALUE <- NA
 	if (!is.na(METAGENOMIC_DATA$f_match[1]) & !is.na(METAGENOMIC_DATA$name[1])) {
 		METAGENOMIC_DATA_NOT_EMPTY <- TRUE
 		if (CLASSIFICATION_DATA_EXIST) {
-			if (!is.na(SOURMASH_SPECIES)) {
-    			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENOMIC_DATA$name)],2)
-    			GREP_F_MATCH <- TRUE
-    		} else if (!is.na(SOURMASH_GENUS)) {
-    			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENOMIC_DATA$name)],2)
-    			GREP_F_MATCH <- TRUE
-    		} else {
-				METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
-				F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
-				GREP_F_MATCH <- FALSE
-    		}
+			F_MATCH_VALUE <- ifelse(!is.na(SOURMASH_SPECIES) & any(grepl(SOURMASH_SPECIES, METAGENOMIC_DATA$name)), round(METAGENOMIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENOMIC_DATA$name)],2),
+					ifelse(!is.na(SOURMASH_GENUS) & any(grepl(SOURMASH_GENUS, METAGENOMIC_DATA$name)), round(METAGENOMIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENOMIC_DATA$name)],2),
+						round(METAGENOMIC_DATA$f_match[1],2)))
+
+			GREP_F_MATCH <- ifelse(!is.na(SOURMASH_SPECIES) & any(grepl(SOURMASH_SPECIES, METAGENOMIC_DATA$name)), TRUE,
+					ifelse(!is.na(SOURMASH_GENUS) & any(grepl(SOURMASH_GENUS, METAGENOMIC_DATA$name)), TRUE,
+						FALSE))
+
+			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- ifelse(!is.na(SOURMASH_SPECIES) & any(grepl(SOURMASH_SPECIES, METAGENOMIC_DATA$name)), NA,
+					ifelse(!is.na(SOURMASH_GENUS) & any(grepl(SOURMASH_GENUS, METAGENOMIC_DATA$name)), NA,
+						str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')))
 		} else {
 			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
 			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
 			GREP_F_MATCH <- FALSE
   		}
-	} else{
+	} else {
 		METAGENOMIC_DATA_NOT_EMPTY <- FALSE
 	}
 }
 ```
 
 `r if(CLASSIFICATION_DATA_EXIST) {
-	sprintf("Status of the classification is: **%s**.", SOURMASH_STATUS)
-	sprintf("The sample **%s** was identified as following:\n
+	sprintf("Status of the classification is: **%s**.\n
+The sample **%s** was identified as following:\n
 **Table 1: Taxonomic classification of sample %s.**  NA means that sourmash was unable to classify this taxonomic rank.\n
 Taxonomic rank|Identified taxonomy
 -|-
@@ -78,18 +79,20 @@ Family|%s
 Genus|%s
 Species|%s
 Strain|%s", 
-	SAMPLE_NAME, SAMPLE_NAME, SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS, SOURMASH_ORDER,
-	SOURMASH_FAMILY, SOURMASH_GENUS, SOURMASH_SPECIES, SOURMASH_STRAIN)
+	SOURMASH_STATUS, SAMPLE_NAME, SAMPLE_NAME, SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS,
+	SOURMASH_ORDER, SOURMASH_FAMILY, SOURMASH_GENUS, SOURMASH_SPECIES, SOURMASH_STRAIN)
 } else {
 	sprintf("Classification of the sample **failed**.")
 }`
 
-`r if(METAGENOMIC_DATA_NOT_EMPTY & GREP_F_MATCH) {
-	sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
-} else if (METAGENOMIC_DATA_NOT_EMPTY & !GREP_F_MATCH) {
-	sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
-	METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
-} else if (!METAGENOMIC_DATA_NOT_EMPTY) {
+`r if(METAGENOMIC_DATA_NOT_EMPTY) {
+	if (GREP_F_MATCH) {
+		sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
+	} else {
+		printf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
+		METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
+	}
+} else {
 	sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 }`
 
