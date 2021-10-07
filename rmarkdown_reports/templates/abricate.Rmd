@@ -21,7 +21,7 @@ if(nrow(abricate_input)<1)
 ### ABRicate
 ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.
 
-The Sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.   
+The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.   
 
 Determined by ABRicate using the **`r database_name [!duplicated(database_name),]`** Database. 
 
@@ -63,7 +63,7 @@ plot_ly(
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.
 
 #### **Detailed resistance gene table**
-**Tab.1**: Interaktive table showing the abricate raw data. You can filter and download the table directly.
+**Tab.1**: Interaktive table showing the abricate raw data for the sample **`r sample_name`**. You can filter and download the table directly.
 ```{r,echo=FALSE}
 # Produce Table
 
