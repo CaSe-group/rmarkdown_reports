@@ -89,7 +89,7 @@ Strain|%s",
 		if (GREP_F_MATCH) {
 			sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
 		} else {
-			printf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
+			sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
 			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
 		}
 	} else {
