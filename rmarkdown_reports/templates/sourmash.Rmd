@@ -3,7 +3,7 @@
 Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").  
 Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.
 
-```{r, echo = FALSE, message = FALSE}
+```{r, echo = FALSE, message = FALSE, error=TRUE}
 CLASSIFICATION_FILE <- "#RESULTSENV#"
 METAGENOME_FILE <- "#RESULTSENVMETA#"
 SAMPLE_NAME <- "#NAMEENV#"
@@ -13,10 +13,11 @@ library(ggplot2)
 library(plotly)
 library(stringr)
 
+CLASSIFICATION_DATA_EXIST <- FALSE
 if (file.exists(CLASSIFICATION_FILE)) {
 	CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
 	CLASSIFICATION_DATA_EXIST <- TRUE
-} else { CLASSIFICATION_DATA_EXIST <- FALSE }
+} 
 
 if (CLASSIFICATION_DATA_EXIST) {
 	SOURMASH_STATUS <- CLASSIFICATION_DATA[1,"status"]
@@ -30,13 +31,13 @@ if (CLASSIFICATION_DATA_EXIST) {
 	SOURMASH_STRAIN <- strsplit(toString(CLASSIFICATION_DATA[1,"strain"]), '__')[[1]][2]
 }
 
+	METAGENOMIC_DATA_EXIST <- FALSE
+	GREP_F_MATCH <- FALSE
+
 if (file.exists(METAGENOME_FILE)) {
 	METAGENOMIC_DATA <-read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
 	METAGENOMIC_DATA_EXIST <- TRUE
-} else {
-	METAGENOMIC_DATA_EXIST <- FALSE
-	GREP_F_MATCH <- FALSE
-}
+} 
 
 if (METAGENOMIC_DATA_EXIST) {
 	F_MATCH_VALUE <- NA
