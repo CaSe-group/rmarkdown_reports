@@ -23,29 +23,41 @@ PROKKA_RAW <- na.omit(PROKKA_RAW)
 
 PROKKA_PROC <- separate(PROKKA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
 PROKKA_PROC$name <- gsub(";.*","",PROKKA_PROC$name)
+PROKKA_PROC <- PROKKA_PROC %>% filter( ,X3 != "gene")
 ```
 
 ```{r}
-GEN_N <- PROKKA_PROC %>% filter(X3 != 'CDS') %>% count() %>% as.integer()
-GEN_N_HYP <- PROKKA_PROC %>% filter(X3 != 'CDS' & name !='NA') %>% count() %>% as.integer()
-GEN_N_TRUE <- GEN_N-GEN_N_HYP
+GEN_N <- PROKKA_PROC %>% nrow() %>% as.integer()
+GEN_N_HYP <- PROKKA_PROC %>% filter(X3 == 'CDS' & is.na(name)) %>% count() %>% as.integer()
+GEN_N_TRUE <- PROKKA_PROC %>% filter(X3 == 'CDS' & !is.na(name)) %>% count() %>% as.integer()
 HYP_PERC <- round(GEN_N_HYP/GEN_N*100, 1)
 CONTIG_N <- length(unique(PROKKA_PROC$X1))
-RRNA_N_GEN <- PROKKA_PROC %>% filter(X3 =="rRNA") %>% count() %>% as.integer()
-TRNA_N_GEN <- PROKKA_PROC %>% filter(X3 =="tRNA") %>% count() %>% as.integer()
-PIE <- data.frame(n=c(GEN_N_TRUE,GEN_N_HYP,RRNA_N_GEN,TRNA_N_GEN ),Type=as.factor(c("Genes","Hypothetical Genes", "rRNA", "tRNA")))
+
+PIE <- PROKKA_PROC %>% filter(X3 != 'CDS') %>% count( ,X3 ) %>% as.data.frame()
+PIE <- rbind(PIE, data.frame(X3="Genes", n=GEN_N_TRUE))
+PIE <- rbind(PIE, data.frame(X3="Hypothetical Genes", n=GEN_N_HYP))
+
+RRNA_N_GEN <- PIE %>% filter(X3 == 'rRNA') %>% select(n) %>% as.integer()
+TRNA_N_GEN <- PIE %>% filter(X3 == 'tRNA') %>% select(n) %>% as.integer()
+
+if (is.na(RRNA_N_GEN)){
+  RRNA_N_GEN <- 0
+}
+if (is.na(TRNA_N_GEN)){
+  TRNA_N_GEN <- 0
+}
 ```
 Prokka is a software tool to annotate bacterial, archaeal and viral genomes quickly and produce standards-compliant output files. 
 [Prokka Github](https://github.com/tseemann/prokka)
 
-Prokka founded **`r GEN_N` genes**, **`r GEN_N_HYP` were hypothetical** <span style="color:red; font-weight: bold">
+Prokka founded **`r GEN_N` features**, **`r GEN_N_TRUE` genes**, **`r GEN_N_HYP` hypothetical genes** <span style="color:red; font-weight: bold">
 `r if(GEN_N_HYP/GEN_N > 0.7){
 "Too many hypothetical genes!"
-}` </span> Genes were located on **`r CONTIG_N` contigs**.
+}` </span> Features are located on **`r CONTIG_N` contigs**.
 
-There were **`r RRNA_N_GEN` rRNA** genes <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
+There are **`r RRNA_N_GEN` rRNA** sequences <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
 "You have more rRNA sequences than expected for one species!"
-}`</span> and **`r TRNA_N_GEN` tRNA** genes.
+}`</span> and **`r TRNA_N_GEN` tRNA** sequences.
 ```{r}
 #margins
 M <- list(
@@ -56,9 +68,7 @@ M <- list(
           pad = 4
         )
 
-COMP_FIG <- plot_ly(PIE, labels = ~Type, values = ~n, width = 450, height = 450,
-    marker = list(colors=c("#008b8b", "#ff8c00", "#9067a7", 
-                           "#dc143c", "#00bfff"))) %>% 
+COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450) %>% 
     add_pie(hole = 0.6) %>% layout(showlegend = TRUE,
                                     margin = M,
                                     legend = list(orientation = 'h'),
@@ -67,7 +77,7 @@ COMP_FIG <- plot_ly(PIE, labels = ~Type, values = ~n, width = 450, height = 450,
 
 COMP_FIG
 ```
-Genes denotes genes that Prokka found in its databases, hypothetical genes are potential genes that were predicted but could not be found at the database, tRNA and rRNA denotes genes that were attributed to tRNA and rRNA genes. 
+Fig.1 Genes denotes genes that Prokka found in its databases, hypothetical genes are potential genes that were predicted but could not be found at the database, tRNA and rRNA denotes genes that were attributed to tRNA and rRNA genes. 
 Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download currently displayed plot as a png file.  
 
 #### **Composition and contig length plots**
@@ -81,10 +91,9 @@ CONT_LEN <- PROKKA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
                                                                           )
 
 CONT_COMP <- PROKKA_PROC %>% select(X1, X3, name)
-CONT_COMP$name[!is.na(CONT_COMP$name)] <- "Gene"
-CONT_COMP$name[is.na(CONT_COMP$name)] <- "HypotheticalGene"
-CONT_COMP$name[str_detect(CONT_COMP$X3,"rRNA")==TRUE] <- "rRNA" #database name for rRNA from Prokka
-CONT_COMP$name[str_detect(CONT_COMP$X3,"tRNA")==TRUE] <- "tRNA" #database name for tRNA from Prokka
+CONT_COMP$name[CONT_COMP$X3 == 'CDS' & !is.na(CONT_COMP$name)] <- "Gene"
+CONT_COMP$name[CONT_COMP$X3 == 'CDS' & is.na(CONT_COMP$name)] <- "HypotheticalGene"
+CONT_COMP$name[CONT_COMP$X3 != 'CDS'] <- CONT_COMP$X3[CONT_COMP$X3 != 'CDS']
 
 CONT_TALLY <- CONT_COMP %>% select(X1, name) %>% count(X1,name)
 CONT_TALLY <-spread(CONT_TALLY, key = "name", value = "n")
@@ -120,15 +129,14 @@ dimension <- 4
 #### Plots 
 #### Comp Plot
 CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~Gene, type = 'bar', orientation = 'h',
-        marker = list(color = 'rgb(0, 139, 139)'),
                       text= CONT_TALLY$n.Gene,textposition = 'inside', name = 'Gene',
         hovertemplate = paste('(%{x}, %{y})'))
-CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~HypotheticalGene, marker = list(color = 'rgb(255, 140, 0)'),
-                         text= CONT_TALLY$n.HypotheticalGene,textposition = 'inside', name = 'Hypothetical Gene')
-CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~rRNA, marker = list(color = 'rgb(220,20,60)'),
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~HypotheticalGene, 
+                         text= CONT_TALLY$n.HypotheticalGene,textposition = 'inside', name = 'Hypothetical Gene')             
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~rRNA, 
                          text= CONT_TALLY$n.rRNA,textposition = 'inside', name = 'rRNA') 
-CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~tRNA, marker = list(color = 'rgb(0,191,255)'),
-                         text= CONT_TALLY$n.tRNA,textposition = 'inside', name = 'tRNA')
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~tRNA,
+                         text= CONT_TALLY$n.tRNA,textposition = 'inside', name = 'tRNA')          
 
 CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
                                                         showgrid = TRUE,
@@ -173,19 +181,19 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
 ```
-Pointing a bar will display more details about currently shown element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the right corner on camera allows to download currently displayed plot as a png file.
+Fig. 2 Pointing a bar will display more details about currently shown element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the right corner on camera allows to download currently displayed plot as a png file.
 
 #### **Output table**
 Full Prokka output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 ```{r}
-
-DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig", "Source", "Feature", "Start", "End","Score","Strand","Phase", "Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
+PROKKA_PROC <- subset(PROKKA_PROC, select = -c(X2,X6,X7,X8))
+DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig",  "Feature", "Start", "End","Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
     dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')))
 
 DTABLE
 #saveWidget(DTABLE, "DTABLE.html")
 ```
-The table is fully interactive and searchable. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
+Fig. 3 The table is fully interactive and searchable. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 
 #### **Version**
 
@@ -193,3 +201,4 @@ Prokka Version: **`r PROKKA_VERSION`**
 
 
 Citation for Prokka can be found under [DOI: 10.1093/bioinformatics/btu153](https://doi.org/10.1093/bioinformatics/btu153).
+
