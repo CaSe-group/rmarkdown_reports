@@ -14,6 +14,9 @@ library(plotly)
 library(stringr)
 
 CLASSIFICATION_DATA_EXIST <- FALSE
+METAGENOMIC_DATA_EXIST <- FALSE
+GREP_F_MATCH <- FALSE
+
 if (file.exists(CLASSIFICATION_FILE)) {
 	CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
 	CLASSIFICATION_DATA_EXIST <- TRUE
@@ -30,9 +33,6 @@ if (CLASSIFICATION_DATA_EXIST) {
 	SOURMASH_SPECIES <- strsplit(toString(CLASSIFICATION_DATA[1,"species"]), '__')[[1]][2]
 	SOURMASH_STRAIN <- strsplit(toString(CLASSIFICATION_DATA[1,"strain"]), '__')[[1]][2]
 }
-
-	METAGENOMIC_DATA_EXIST <- FALSE
-	GREP_F_MATCH <- FALSE
 
 if (file.exists(METAGENOME_FILE)) {
 	METAGENOMIC_DATA <-read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
@@ -59,7 +59,6 @@ if (METAGENOMIC_DATA_EXIST) {
 		} else {
 			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
 			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
-			GREP_F_MATCH <- FALSE
   		}
 	}
 }
