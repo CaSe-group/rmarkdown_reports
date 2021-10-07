@@ -15,13 +15,15 @@ suppressMessages(library(DT))
 abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
 database_name <- abricate_input %>% select (DATABASE)
 if(nrow(abricate_input)<1)
-  {message("There are no resistances in your sample!")}
+  {"There are no resistance genes in your sample!"}
 ```
 
-### ABRicate report
+### ABRicate
 ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.
-The Sample `r sample_name` contains `r nrow(abricate_input)` resistance genes. 
-Determined by Abricate using the `r database_name [!duplicated(database_name),]` Database. 
+
+The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.   
+
+Determined by ABRicate using the **`r database_name [!duplicated(database_name),]`** Database. 
 
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
 
@@ -60,21 +62,28 @@ plot_ly(
 **Fig.1**: Interactive sunburst chart showing the detected resistances in `r sample_name`. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.
 
-#### Detailed resistance gene table
-**Tab.1**: Interaktive table showing the abricate raw data. You can filter and download the table directly.
+#### **Detailed resistance gene table**
+**Tab.1**: Interaktive table showing the abricate raw data for the sample **`r sample_name`**. You can filter and download the table directly.
 ```{r,echo=FALSE}
 # Produce Table
 
 selected_input <- abricate_input %>% select(SEQUENCE, START, END, STRAND, GENE, ACCESSION, PRODUCT, RESISTANCE)
-datatable(selected_input, extensions = 'Buttons', options = list(
-  searching = TRUE,
-  pageLength = 10,
-  lengthMenu = c(5, 10, 15, 20),
-  buttons = c('copy', 'csv', 'excel', 'colvis')
-))
+
+DTABLE <- datatable(selected_input, 
+  rownames = FALSE, 
+  class = 'hover', 
+  extensions  = 'Buttons', 
+  options = list(
+    pageLength = 10,
+    lengthMenu = c(5, 10, 15, 20),
+    dom = 'Bfrtip', 
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')
+  )
+)
+DTABLE 
 ```
 
-#### Citation
+#### **Citation**
 If you publish the results use following citation:
 
 Seemann T, Abricate, Github https://github.com/tseemann/abricate
