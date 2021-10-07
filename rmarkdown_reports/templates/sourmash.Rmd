@@ -40,6 +40,7 @@ if (file.exists(METAGENOME_FILE)) {
 
 if (METAGENOMIC_DATA_EXIST) {
 	F_MATCH_VALUE <- NA
+	METAGENOMIC_DATA_NOT_EMPTY <- FALSE
 	if (!is.na(METAGENOMIC_DATA$f_match[1]) & !is.na(METAGENOMIC_DATA$name[1])) {
 		METAGENOMIC_DATA_NOT_EMPTY <- TRUE
 		if (CLASSIFICATION_DATA_EXIST) {
@@ -59,8 +60,6 @@ if (METAGENOMIC_DATA_EXIST) {
 			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
 			GREP_F_MATCH <- FALSE
   		}
-	} else {
-		METAGENOMIC_DATA_NOT_EMPTY <- FALSE
 	}
 }
 ```
@@ -85,59 +84,67 @@ Strain|%s",
 	sprintf("Classification of the sample **failed**.")
 }`
 
-`r if(METAGENOMIC_DATA_NOT_EMPTY) {
-	if (GREP_F_MATCH) {
-		sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
+`r if (METAGENOMIC_DATA_EXIST) {
+	if(METAGENOMIC_DATA_NOT_EMPTY) {
+		if (GREP_F_MATCH) {
+			sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
+		} else {
+			printf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
+			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
+		}
 	} else {
-		printf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
-		METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
+		sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 	}
-} else {
-	sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 }`
 
-`r if (METAGENOMIC_DATA_NOT_EMPTY) {
-	sprintf("#### **Distribution of identified organisms.**\n\n  The following chart gives a overview about all identified 
-	organisms in the sample. It is based on how many bases belong to each organism ( called \"intersect_bp\").  
-	The diagram is interactive so that upon hovering over a part of it the organism and according intersecting bp are showed. Further 
-	organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
-	provided in the upper right corner while hovering over it.")
+`r if (METAGENOMIC_DATA_EXIST) {
+	if (METAGENOMIC_DATA_EXIST & METAGENOMIC_DATA_NOT_EMPTY) {
+		sprintf("#### **Distribution of identified organisms.**\n\n  The following chart gives a overview about all identified 
+		organisms in the sample. It is based on how many bases belong to each organism ( called \"intersect_bp\").  
+		The diagram is interactive so that upon hovering over a part of it the organism and according intersecting bp are showed. Further 
+		organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
+		provided in the upper right corner while hovering over it.")
+	}
 }`
 
 ```{r, echo = FALSE}
-if (METAGENOMIC_DATA_NOT_EMPTY) {
-	ORGANISM_LIST <- list(METAGENOMIC_DATA$name)
-	for (ELEMENT in 1:length(ORGANISM_LIST[[1]])) {
-		ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][2:3]), ',')
+if (METAGENOMIC_DATA_EXIST) {
+	if (METAGENOMIC_DATA_NOT_EMPTY) {
+		ORGANISM_LIST <- list(METAGENOMIC_DATA$name)
+		for (ELEMENT in 1:length(ORGANISM_LIST[[1]])) {
+			ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][2:3]), ',')
+		}
+
+		BP_COUNT_LIST <- list(METAGENOMIC_DATA$intersect_bp)
+		COLUMN_NAME_LIST <- c("ORGANISM", "BP_COUNT")
+		ORGANISM_BP_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(BP_COUNT_LIST)))
+		colnames(ORGANISM_BP_DATA) <- COLUMN_NAME_LIST
+
+		CONTIG_PIE_CHART <- plot_ly(ORGANISM_BP_DATA, labels = ~ORGANISM, values = ~BP_COUNT, type = 'pie',
+	                		insidetextorientation = 'radial',
+	                		textposition = 'inside',
+	                		textinfo = 'percent',
+	                		insidetextfont = list(color = '#FFFFFF'),
+	                		hoverinfo = 'label+text',
+	                		text = ~paste(BP_COUNT, ' bp'),
+	                		marker = list(colors = colors,
+	                              		line = list(color = '#FFFFFF', width = 1))
+						)
+		CONTIG_PIE_CHART <- CONTIG_PIE_CHART %>% layout(
+	          				xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+	          				yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+						)
+
+		CONTIG_PIE_CHART
 	}
-
-	BP_COUNT_LIST <- list(METAGENOMIC_DATA$intersect_bp)
-	COLUMN_NAME_LIST <- c("ORGANISM", "BP_COUNT")
-	ORGANISM_BP_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(BP_COUNT_LIST)))
-	colnames(ORGANISM_BP_DATA) <- COLUMN_NAME_LIST
-
-	CONTIG_PIE_CHART <- plot_ly(ORGANISM_BP_DATA, labels = ~ORGANISM, values = ~BP_COUNT, type = 'pie',
-                		insidetextorientation = 'radial',
-                		textposition = 'inside',
-                		textinfo = 'percent',
-                		insidetextfont = list(color = '#FFFFFF'),
-                		hoverinfo = 'label+text',
-                		text = ~paste(BP_COUNT, ' bp'),
-                		marker = list(colors = colors,
-                              		line = list(color = '#FFFFFF', width = 1))
-					)
-	CONTIG_PIE_CHART <- CONTIG_PIE_CHART %>% layout(
-          				xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-          				yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
-					)
-
-	CONTIG_PIE_CHART
 }
 ```
 
-`r if (METAGENOMIC_DATA_NOT_EMPTY) {
-	sprintf("**Figure 1: Distribution of all identified organisms in the sample %s.**   
-	    The chart is divided by the number of bases belonging to each identified organism. \n\n", SAMPLE_NAME)
+`r if (METAGENOMIC_DATA_EXIST) {
+	if (METAGENOMIC_DATA_NOT_EMPTY) {
+		sprintf("**Figure 1: Distribution of all identified organisms in the sample %s.**   
+		    The chart is divided by the number of bases belonging to each identified organism. \n\n", SAMPLE_NAME)
+	}
 }`
 
 #### **Citation**
