@@ -1,0 +1,177 @@
+  
+### Bakta
+
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(stringr)
+library(DT)
+library(plotly)
+```
+
+```{r, echo=FALSE}
+BAKTA_INPUT_FILE <- "#RESULTSENV#"
+BAKTA_VERSION <- "#NAMEENV#"
+BAKTA_RAW <- read_delim(BAKTA_INPUT_FILE, 
+    delim = "\t", escape_double = FALSE,
+    col_names = FALSE, comment = c("#"), trim_ws = TRUE)
+BAKTA_RAW <- na.omit(BAKTA_RAW)
+BAKTA_PROC <- separate(BAKTA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
+BAKTA_PROC$name <- gsub(";.*","",BAKTA_PROC$name)
+BAKTA_PROC <- BAKTA_PROC %>% filter( ,X3 != "gene")
+```
+
+```{r}
+GEN_N <- BAKTA_PROC %>% nrow() %>% as.integer()
+CONTIG_N <- length(unique(BAKTA_PROC$X1))
+PIE <- BAKTA_PROC %>% filter(X3 != 'CDS') %>% count( ,X3 ) %>% as.data.frame()
+#PIE <- rbind(PIE, data.frame(X3="Genes", n=GEN_N_TRUE))
+RRNA_N_GEN <- PIE %>% filter(X3 == 'rRNA') %>% select(n) %>% as.integer()
+TRNA_N_GEN <- PIE %>% filter(X3 == 'tRNA') %>% select(n) %>% as.integer()
+if (is.na(RRNA_N_GEN)){
+  RRNA_N_GEN <- 0
+}
+if (is.na(TRNA_N_GEN)){
+  TRNA_N_GEN <- 0
+}
+```
+Bakta is a tool for the rapid & standardized annotation of bacterial genomes & plasmids. 
+[BAKTA Github](https://github.com/oschwengers/bakta)
+
+BAKTA founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**.
+
+There are **`r RRNA_N_GEN` rRNA** sequences <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
+"You have more rRNA sequences than expected for one species!"
+}`</span> and **`r TRNA_N_GEN` tRNA** sequences.
+```{r}
+#margins
+M <- list(
+          l = 50,
+          r = 50,
+          b = 50,
+          t = 50,
+          pad = 4
+        )
+COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450) %>% 
+    add_pie(hole = 0.6) %>% layout(showlegend = TRUE,
+                                    margin = M,
+                                    legend = list(orientation = 'h'),
+                                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+COMP_FIG
+```
+Fig.1 Genes denotes genes that BAKTA found in its databases, hypothetical genes are potential genes that were predicted but could not be found at the database, tRNA and rRNA denotes genes that were attributed to tRNA and rRNA genes. 
+Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download currently displayed plot as a png file.  
+
+#### **Composition and contig length plots**
+Visualisation of features found on contigs compared with length of contigs.
+
+```{r}
+#### Data conversion 
+CONT_LEN <- BAKTA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
+                                                                          cont_max = max(X5)
+                                                                          )
+CONT_COMP <- BAKTA_PROC %>% select(X1, X3, name)
+CONT_COMP$name[CONT_COMP$X3 == 'CDS' & !is.na(CONT_COMP$name)] <- "Gene"
+CONT_COMP$name[CONT_COMP$X3 == 'CDS' & is.na(CONT_COMP$name)] <- "HypotheticalGene"
+CONT_COMP$name[CONT_COMP$X3 != 'CDS'] <- CONT_COMP$X3[CONT_COMP$X3 != 'CDS']
+CONT_TALLY <- CONT_COMP %>% select(X1, name) %>% count(X1,name)
+CONT_TALLY <-spread(CONT_TALLY, key = "name", value = "n")
+CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="X1" )
+CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
+if (!"Gene" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$Gene <- 0
+}
+if (!"HypotheticalGene" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$HypotheticalGene <- 0
+}
+if (!"tRNA" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$tRNA <- 0
+}
+if (!"rRNA" %in% colnames(CONT_TALLY)) {
+  CONT_TALLY$rRNA <- 0
+}
+#### Fig dimensions
+len <- nrow(CONT_LEN)
+if(len < 9){
+len <- 2
+}
+dimension <- len * 0.14
+if(dimension < 2){
+dimension <- 4
+}
+```
+```{r, fig.width = dimension, fig.height = dimension}
+#### Plots 
+#### Comp Plot
+CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~Gene, type = 'bar', orientation = 'h',
+                      text= CONT_TALLY$n.Gene,textposition = 'inside', name = 'Gene',
+        hovertemplate = paste('(%{x}, %{y})'))
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~HypotheticalGene, 
+                         text= CONT_TALLY$n.HypotheticalGene,textposition = 'inside', name = 'Hypothetical Gene')             
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~rRNA, 
+                         text= CONT_TALLY$n.rRNA,textposition = 'inside', name = 'rRNA') 
+CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = ~tRNA,
+                         text= CONT_TALLY$n.tRNA,textposition = 'inside', name = 'tRNA')          
+CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
+                                                        showgrid = TRUE,
+                                                        showline = FALSE,
+                                                        showticklabels = TRUE,
+                                                        zeroline = FALSE,
+                                                        domain = c(0.15, 1)),
+                                                        yaxis = list(title = "Contigs",
+                                                        categoryorder= 'total ascending',
+                                                        showgrid = FALSE,
+                                                        showline = FALSE,
+                                                        showticklabels = TRUE,
+                                                        zeroline = FALSE
+                                                        ),
+                                           barmode = 'stack',
+                                           paper_bgcolor = 'rgb(255, 255, 255)', plot_bgcolor = 'rgb(255, 255, 255)',
+                                           showlegend = TRUE) 
+#### Length plot
+CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$X1, name = 'Contig length',
+              type = 'bar', mode = 'markers',
+              line = list(color = 'rgb(128, 0, 128)'),
+              text=CONT_TALLY$cont_max, textposition = 'auto',
+              hovertemplate = paste('(%{x}, %{y})')
+              ) 
+CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
+                      categoryorder= 'total ascending',
+                      showgrid = TRUE, 
+                      showline = TRUE, 
+                      showticklabels = FALSE,
+                      linecolor = 'rgb(102, 102, 102, 0.8)', 
+                      domain = c(0.15, 1)),
+                      xaxis = list(title = "Contig length",
+                      zeroline = FALSE, 
+                      showline = FALSE, 
+                      showticklabels = TRUE, 
+                      showgrid = TRUE,
+                      side = 'down'),
+         showlegend = FALSE) 
+COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
+COMBINED_CONT_FIG
+```
+Fig. 2 Pointing a bar will display more details about currently shown element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the right corner on camera allows to download currently displayed plot as a png file.
+
+#### **Output table**
+Full BAKTA output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
+```{r}
+BAKTA_PROC <- subset(BAKTA_PROC, select = -c(X2,X6,X7,X8))
+DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End","Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list( dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')))
+#setcolorder(DTABLE, c("Contig",  "Feature", "Start", "End","Name","Attributes"))
+DTABLEDTABLE
+
+```
+Fig. 3 The table is fully interactive and searchable. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
+
+#### **Version**
+
+BAKTA Version: **`r BAKTA_VERSION`**
+
+
+Citation for BAKTA can be found under [DOI: 10.1101/2021.09.02.458689](https://doi.org/10.1101/2021.09.02.458689).
