@@ -14,17 +14,47 @@ library(plotly)
 ```{r, echo=FALSE}
 PROKKA_INPUT_FILE <- "#RESULTSENV#"
 PROKKA_VERSION <- "#NAMEENV#"
-
 PROKKA_RAW <- read_delim(PROKKA_INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
     col_names = FALSE, comment = c("#"), trim_ws = TRUE)
-
 PROKKA_RAW <- na.omit(PROKKA_RAW)
+```
 
+```{r}
+#Sanity checks
+EXIT <- FALSE
+# Check if file exists
+if (is.null(PROKKA_INPUT_FILE) || PROKKA_INPUT_FILE == "#RESULTSENV#"){
+print("No source file detected please specify PROKKA input file")
+  EXIT <- TRUE
+}
+
+# Check if gff3
+if (ncol(PROKKA_RAW) != 9 || str_detect(PROKKA_INPUT_FILE, "gff", negate = TRUE)){
+print("Incorect source file detected, please use gff3 file format")
+  EXIT <- TRUE
+}
+
+#Check if empty file/structured in a not PROKKA way 
+if (nrow(PROKKA_RAW)<1){
+print("Source file seems empty, check if annotation file was created correctly")
+  EXIT <- TRUE
+}
+
+```
+
+```{r}
+#Abort if fail sanity checks
+if (EXIT == TRUE){
+knit_exit()
+}
+```
+
+```{r}
+# Parsing gff
 PROKKA_PROC <- separate(PROKKA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
 PROKKA_PROC$name <- gsub(";.*","",PROKKA_PROC$name)
-PROKKA_PROC <- PROKKA_PROC %>% filter( ,X3 != "gene")
-```
+PROKKA_PROC <- PROKKA_PROC %>% filter(X3 != "gene")
 
 ```{r}
 GEN_N <- PROKKA_PROC %>% nrow() %>% as.integer()
@@ -187,11 +217,26 @@ Fig. 2 Pointing a bar will display more details about currently shown element. T
 Full Prokka output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 ```{r}
 PROKKA_PROC <- subset(PROKKA_PROC, select = -c(X2,X6,X7,X8))
-DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig",  "Feature", "Start", "End","Attributes", "Name"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons', options = list(
-    dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')))
+PROKKA_PROC <- PROKKA_PROC[, c(1,2,3,4,6,5)]
+#remove contig description
+PROKKA_PROC <- PROKKA_PROC %>% filter (X3 != "region")
+
+DTABLE <- datatable(PROKKA_PROC, colnames = c("Contig",  "Feature", "Start", "End", "Name","Attributes"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons',
+                    filter = list(position = 'top'),
+                    options = list( dom = '<"top"fB>rt<"bottom"lp>i<"clear">', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis'), 
+                      search = list(regex = TRUE, caseInsensitive = FALSE),
+                      columnDefs = list(list(
+                        targets = 5,
+                        render = JS(
+                          "function(data, type, row, meta) {",
+                          "return type === 'display' && data.length > 6 ?",
+                          "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                          "}")
+                      ))), callback = JS('table.page(3).draw(false);')
+                    )
 
 DTABLE
-#saveWidget(DTABLE, "DTABLE.html")
+
 ```
 Fig. 3 The table is fully interactive and searchable. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 
