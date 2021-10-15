@@ -76,10 +76,12 @@ DTABLE <- datatable(selected_input,
   rownames = FALSE, 
   class = 'hover', 
   extensions  = 'Buttons', 
+  filter = list(position = 'top'),
   options = list(
+    search = list(regex = TRUE, caseInsensitive = FALSE),
     pageLength = 10,
     lengthMenu = c(5, 10, 15, 20),
-    dom = 'Bfrtip', 
+    dom = '<"top"fB>rt<"bottom"lp>i<"clear">' 
     buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')
   )
 )
