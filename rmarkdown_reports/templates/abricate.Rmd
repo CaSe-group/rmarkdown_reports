@@ -18,15 +18,13 @@ abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.n
 database_name <- abricate_input %>% select (DATABASE)
 ```
 
-
-`r if(nrow(abricate_input)<1){ sprintf("No resistance genes have been found in your sample!") }`
-
-
 ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.
 
-The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.   
+**`r if(nrow(abricate_input)<1){ sprintf("No resistance genes have been found in your sample!") }`**
 
-Determined by ABRicate using the **`r database_name [!duplicated(database_name),]`** Database. 
+`r if(nrow(abricate_input)<1){The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.}`   
+
+Determined by ABRicate using the **`r if(nrow(abricate_input)<1){database_name [!duplicated(database_name),]}`** Database. 
 
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
 if (nrow(abricate_input)>0){
