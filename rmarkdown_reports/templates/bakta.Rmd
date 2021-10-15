@@ -1,5 +1,4 @@
-  
-### Bakta
+  ### Prokka
 
 
 ```{r, echo=FALSE}
@@ -9,20 +8,47 @@ library(tidyr)
 library(readr)
 library(stringr)
 library(DT)
+library(knitr)
 library(plotly)
 ```
-
 ```{r, echo=FALSE}
-BAKTA_INPUT_FILE <- "#RESULTSENV#"
+BAKTA_INPUT_FILE <- "barcode12_filtered.1.gff3"
 BAKTA_VERSION <- "#NAMEENV#"
 BAKTA_RAW <- read_delim(BAKTA_INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
     col_names = FALSE, comment = c("#"), trim_ws = TRUE)
 BAKTA_RAW <- na.omit(BAKTA_RAW)
+```
+
+```{r}
+#Sanity checks
+# Check if file exists
+if (is.null(BAKTA_INPUT_FILE) || BAKTA_INPUT_FILE == "#RESULTSENV#"){
+"No source file detected please specify Bakta input file"
+  knit_exit()
+}
+
+# Check if gff3
+if (ncol(BAKTA_RAW) != 9 || str_detect(BAKTA_INPUT_FILE, "gff", negate = TRUE)){
+"Incorect source file detected, please use gff3 file format"
+  knit_exit()
+}
+
+#Check if empty file/structured in a not bakta way 
+if (nrow(BAKTA_RAW)<1){
+"Source file seems empty, check if annotation file was created correctly"
+  knit_exit()
+}
+
+```
+
+```{r}
+
 BAKTA_PROC <- separate(BAKTA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
 BAKTA_PROC$name <- gsub(";.*","",BAKTA_PROC$name)
 BAKTA_PROC <- BAKTA_PROC %>% filter( ,X3 != "gene")
 ```
+
 
 ```{r}
 GEN_N <- BAKTA_PROC %>% nrow() %>% as.integer()
