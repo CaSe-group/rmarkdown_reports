@@ -9,6 +9,7 @@ library(readr)
 library(stringr)
 library(DT)
 library(plotly)
+library(knitr)
 ```
 
 ```{r, echo=FALSE}
