@@ -81,7 +81,7 @@ DTABLE <- datatable(selected_input,
     search = list(regex = TRUE, caseInsensitive = FALSE),
     pageLength = 10,
     lengthMenu = c(5, 10, 15, 20),
-    dom = '<"top"fB>rt<"bottom"lp>i<"clear">' 
+    dom = '<"top"fB>rt<"bottom"lp>i<"clear">', 
     buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')
   )
 )
