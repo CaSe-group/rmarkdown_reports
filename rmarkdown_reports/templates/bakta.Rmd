@@ -22,32 +22,32 @@ BAKTA_RAW <- na.omit(BAKTA_RAW)
 
 ```{r}
 #Sanity checks
-EXIT <- FALSE
+#EXIT <- FALSE
 # Check if file exists
-if (is.null(BAKTA_INPUT_FILE) || BAKTA_INPUT_FILE == "#RESULTSENV#"){
-print("No source file detected please specify Bakta input file")
-  EXIT <- TRUE
-}
-
+#if (is.null(BAKTA_INPUT_FILE) || BAKTA_INPUT_FILE == "#RESULTSENV#"){
+#print("No source file detected please specify Bakta input file")
+#  EXIT <- TRUE
+#}
+#
 # Check if gff3
-if (ncol(BAKTA_RAW) != 9 || str_detect(BAKTA_INPUT_FILE, "gff", negate = TRUE)){
-print("Incorect source file detected, please use gff3 file format")
-  EXIT <- TRUE
-}
-
+#if (ncol(BAKTA_RAW) != 9 || str_detect(BAKTA_INPUT_FILE, "gff", negate = TRUE)){
+#print("Incorect source file detected, please use gff3 file format")
+#  EXIT <- TRUE
+#}
+#
 #Check if empty file/structured in a not bakta way 
-if (nrow(BAKTA_RAW)<1){
-print("Source file seems empty, check if annotation file was created correctly")
-  EXIT <- TRUE
+#if (nrow(BAKTA_RAW)<1){
+#print("Source file seems empty, check if annotation file was created correctly")
+#  EXIT <- TRUE
 }
 
 ```
 
 ```{r}
 #Abort if fail sanity checks
-if (EXIT == TRUE){
-knit_exit()
-}
+#if (EXIT == TRUE){
+#knit_exit()
+#}
 ```
 
 
