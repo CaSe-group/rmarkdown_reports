@@ -12,7 +12,7 @@ library(knitr)
 library(plotly)
 ```
 ```{r, echo=FALSE}
-BAKTA_INPUT_FILE <- "genome.gff3"
+BAKTA_INPUT_FILE <- "#RESULTSENV#"
 BAKTA_VERSION <- "#NAMEENV#"
 BAKTA_RAW <- read_delim(BAKTA_INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
