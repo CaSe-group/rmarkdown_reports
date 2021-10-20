@@ -78,10 +78,10 @@ Strain|%s",
 		anaylsed sequence are showed. 
 		Further organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
 		provided in the upper right corner while hovering over it.")
-		ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 10, sprintf("Warning, percentage of unique bases < 10 %:\nThe organism might not be a bacteria/archea, is completely unknown without any close relatives, or the sample contains lots of contamination."),
-			ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 50, sprintf("Warning, percentage of unique bases < 50 %:\nThe organism might not be a bacteria/archea, is unknown, or the sample contains lots of contamination.")),
-				ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 80, sprintf("Warning, percentage of unique bases < 80 %:\nThe organism might be an unknown bacteria/archea species or the sample contains to much contamination."),
-					sprintf("The percentage of unique bases of %s in the analysed sequence amounts to %s \%.", METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_UNIQUE_TO_QUERY_PERCENTAGE)))
+		ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 10, sprintf("Warning, less than 10 percent could be taxonomically assigned to the analysed genome:\nThe organism might not be a bacteria/archea, is completely unknown without any close relatives, or the sample contains lots of contamination."),
+			ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 50, sprintf("Warning, less than 50 percent could be taxonomically assigned to analysed genome:\nThe organism might not be a bacteria/archea, is unknown, or the sample contains lots of contamination."),
+				ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 80, sprintf("Warning, less than 80 percent could be taxonomically assigned to the analysed genome:\nThe organism might be an unknown bacteria/archea species or the sample contains to much contamination."),
+					sprintf("The percentage of unique bases of %s in the analysed sequence amounts to %s percent.", METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_UNIQUE_TO_QUERY_PERCENTAGE))))
 	} else {
 		sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 	}
@@ -92,15 +92,25 @@ if (METAGENOMIC_DATA_EXIST) {
 	if (METAGENOMIC_DATA_NOT_EMPTY) {
 		ORGANISM_LIST <- list(METAGENOMIC_DATA$name)
 		for (ELEMENT in 1:length(ORGANISM_LIST[[1]])) {
-			ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][2:3]), ',')
+			ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(ORGANISM_LIST[[1]][ELEMENT]), ',')
 		}
 
-		F_UNIQUE_TO_QUERY_LIST <- list(METAGENOMIC_DATA$f_unique_to_query)
-		COLUMN_NAME_LIST <- c("ORGANISM", "PERCENTAGE_UNIQUE_BASES")
-		ORGANISM_BP_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(F_UNIQUE_TO_QUERY_LIST)))
-		colnames(ORGANISM_BP_DATA) <- COLUMN_NAME_LIST
+		F_UNIQUE_TO_QUERY_LIST <- lapply(list(METAGENOMIC_DATA$f_unique_to_query),"*",100)
+		PERCENTAGE_UNKNOWN <- 100 - sum(unlist(F_UNIQUE_TO_QUERY_LIST))
+		
+		if (PERCENTAGE_UNKNOWN > 0) {
+			ORGANISM_LIST <- unlist(c(ORGANISM_LIST, "Unknown/Not found"))
+		}
 
-		CONTIG_PIE_CHART <- plot_ly(ORGANISM_BP_DATA, labels = ~ORGANISM, values = ~PERCENTAGE_UNIQUE_BASES, type = 'pie',
+		if (PERCENTAGE_UNKNOWN > 0) {
+			F_UNIQUE_TO_QUERY_LIST <- c(F_UNIQUE_TO_QUERY_LIST, PERCENTAGE_UNKNOWN)
+		}
+
+		COLUMN_NAME_LIST <- c("ORGANISM", "PERCENTAGE_UNIQUE_BASES")
+		ORGANISM_PERCENTAGE_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(F_UNIQUE_TO_QUERY_LIST)))
+		colnames(ORGANISM_PERCENTAGE_DATA) <- COLUMN_NAME_LIST
+
+		CONTIG_PIE_CHART <- plot_ly(ORGANISM_PERCENTAGE_DATA, labels = ~ORGANISM, values = ~PERCENTAGE_UNIQUE_BASES, type = 'pie',
 	                		insidetextorientation = 'radial',
 	                		textposition = 'inside',
 	                		textinfo = 'percent',
