@@ -70,16 +70,16 @@ Bakta is a tool for the rapid & standardized annotation of bacterial genomes & p
 #### Overview
 Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
 
-Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing three RNA genes: 5S, 16S and 23S in a close proximity. 
+Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing the three RNA genes: 5S, 16S and 23S in a close proximity. 
 
-Bakta detected `r ARNA` 5S, `r BRNA` 16S and `r CRNA` 23S  rRNA genes (would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons)<span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
+Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA genes (this would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons)<span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
 "Warning found more than 15 operons!"
 }`</span><span style="color:red; font-weight: bold">`r if (all(sapply(list(ARNA,BRNA,CRNA), function(x) x == CRNA))){
 "Warning some rRNA operons are missing one of the rRNA genes!"
-}`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check quality of the data and the Sourmash tab for contaminations.
+}`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check the genome quality or if contaminations from other organisms are present increasing the rRNA count.
 
 
-Fig.1  Pie chart of feature types founded by Bakta
+Fig.1  Pie chart representing all the annotation features identified by Bakta
 ```{r}
 #margins
 M <- list(
@@ -103,7 +103,7 @@ Clicking on the legend will exclude the feature from the composition and clickin
 #### **Composition and contig length plots**
 Visualisation of features found on contigs compared with length of contigs.
 
-Fig. 2 Pointing a bar will display more details about currently shown element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the right corner on camera allows to download currently displayed plot as a png file.
+Fig. 2 Composition by annotation features of each contig. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
 ```{r include = FALSE}
 #### Data conversion 
 CONT_LEN <- BAKTA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
