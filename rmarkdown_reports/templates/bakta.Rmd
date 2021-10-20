@@ -24,7 +24,7 @@ BAKTA_RAW <- na.omit(BAKTA_RAW)
 #Sanity checks
 EXIT <- FALSE
 #Check if empty file/structured in a not bakta way 
-if (nrow(BAKTA_RAW)<1){
+if (nrow(BAKTA_RAW)<2){
 print("Source file seems empty, check if annotation file was created correctly")
   EXIT <- TRUE
 }
@@ -36,8 +36,6 @@ if (EXIT == TRUE){
 knit_exit()
 }
 ```
-
-
 
 ```{r}
 # Parsing gff
@@ -72,13 +70,13 @@ Bakta is a tool for the rapid & standardized annotation of bacterial genomes & p
 #### Overview
 Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
 
-Bacterial species can contain up to 15 rRNA operons each containing the threes RNA genes 5S, 16S and 23S in close proximity. 
+Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing three RNA genes: 5S, 16S and 23S in a close proximity. 
 
-Bakta detected **`r ARNA` 5S**, **`r BRNA` 16S** and **`r CRNA` 23S ** rRNA genes (would correspond to ~**`r as.integer((ARNA+BRNA+CRNA)/3)` operons)<span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
+Bakta detected `r ARNA` 5S, `r BRNA` 16S and `r CRNA` 23S  rRNA genes (would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons)<span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
 "Warning found more than 15 operons!"
 }`</span><span style="color:red; font-weight: bold">`r if (all(sapply(list(ARNA,BRNA,CRNA), function(x) x == CRNA))){
 "Warning some rRNA operons are missing one of the rRNA genes!"
-}`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more 16S RNA than expected please check quality of your data and Sourmash tab for contaminations.
+}`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check quality of the data and the Sourmash tab for contaminations.
 
 
 Fig.1  Pie chart of feature types founded by Bakta
@@ -221,5 +219,7 @@ DTABLE
 
 BAKTA Version: **`r BAKTA_VERSION`**
 
+#### **Bibliography**
+Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
 
 Citation for BAKTA can be found under [DOI: 10.1101/2021.09.02.458689](https://doi.org/10.1101/2021.09.02.458689).
