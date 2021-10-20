@@ -22,35 +22,20 @@ BAKTA_RAW <- na.omit(BAKTA_RAW)
 
 ```{r}
 #Sanity checks
-#EXIT <- FALSE
-# Check if file exists
-#if (is.null(BAKTA_INPUT_FILE) || BAKTA_INPUT_FILE == "#RESULTSENV#"){
-#print("No source file detected please specify Bakta input file")
-#  EXIT <- TRUE
-#}
-#
-# Check if gff3
-#if (ncol(BAKTA_RAW) != 9 || str_detect(BAKTA_INPUT_FILE, "gff", negate = TRUE)){
-#print("Incorect source file detected, please use gff3 file format")
-#  EXIT <- TRUE
-#}
-#
+EXIT <- FALSE
 #Check if empty file/structured in a not bakta way 
-#if (nrow(BAKTA_RAW)<1){
-#print("Source file seems empty, check if annotation file was created correctly")
-#  EXIT <- TRUE
+if (nrow(BAKTA_RAW)<2){
+print("Source file seems empty, check if annotation file was created correctly")
+  EXIT <- TRUE
 }
-
 ```
 
 ```{r}
 #Abort if fail sanity checks
-#if (EXIT == TRUE){
-#knit_exit()
-#}
+if (EXIT == TRUE){
+knit_exit()
+}
 ```
-
-
 
 ```{r}
 # Parsing gff
@@ -62,9 +47,7 @@ BAKTA_PROC <- BAKTA_PROC %>% filter(X3 != "gene")
 ```{r}
 GEN_N <- BAKTA_PROC %>% nrow() %>% as.integer()
 CONTIG_N <- length(unique(BAKTA_PROC$X1))
-
 PIE <- BAKTA_PROC %>% filter(X3 != 'region') %>%  count( ,X3 ) %>% as.data.frame()
-
 RRNA_N_GEN <- PIE %>% filter(X3 == 'rRNA') %>% select(n) %>% as.integer()
 TRNA_N_GEN <- PIE %>% filter(X3 == 'tRNA') %>% select(n) %>% as.integer()
 if (is.na(RRNA_N_GEN)){
@@ -74,16 +57,29 @@ if (is.na(TRNA_N_GEN)){
   TRNA_N_GEN <- 0
 }
 
+#rRNA count
+ARNA <- BAKTA_PROC %>% filter(name == '5S ribosomal RNA') %>%  nrow()
+BRNA <- BAKTA_PROC %>% filter(name == '16S ribosomal RNA') %>%  nrow()
+CRNA <- BAKTA_PROC %>% filter(name == '23S ribosomal RNA') %>%  nrow()
+
+
 ```
 Bakta is a tool for the rapid & standardized annotation of bacterial genomes & plasmids. 
 [BAKTA Github](https://github.com/oschwengers/bakta)
 
 #### Overview
-Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**.
+Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
 
-There are **`r RRNA_N_GEN` rRNA** sequences <span style="color:red; font-weight: bold">`r if (RRNA_N_GEN > 3){
-"You have more rRNA sequences than expected for one species!"
-}`</span> and **`r TRNA_N_GEN` tRNA** sequences.
+Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing the three RNA genes: 5S, 16S and 23S in a close proximity. 
+
+Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA genes (this would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons)<span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
+"Warning found more than 15 operons!"
+}`</span><span style="color:red; font-weight: bold">`r if (all(sapply(list(ARNA,BRNA,CRNA), function(x) x == CRNA))){
+"Warning some rRNA operons are missing one of the rRNA genes!"
+}`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check the genome quality or if contaminations from other organisms are present increasing the rRNA count.
+
+
+Fig.1  Pie chart representing all the annotation features identified by Bakta
 ```{r}
 #margins
 M <- list(
@@ -101,14 +97,14 @@ COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450) %
                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 COMP_FIG
 ```
-Fig.1  Pie chart of feature types founded by Bakta
 
 Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download currently displayed plot as a png file.  
 
 #### **Composition and contig length plots**
 Visualisation of features found on contigs compared with length of contigs.
 
-```{r}
+Fig. 2 Composition by annotation features of each contig. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
+```{r include = FALSE}
 #### Data conversion 
 CONT_LEN <- BAKTA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
                                                                           cont_max = max(X5)
@@ -118,7 +114,7 @@ CONT_TALLY <- CONT_COMP %>% select(X1, X3) %>% count(X1,X3)
 CONT_TALLY <-spread(CONT_TALLY, key = "X3", value = "n")
 CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="X1" )
 CONT_TALLY$cont_max <- as.integer(CONT_TALLY$cont_max)
-CONT_TALLY <- CONT_TALLY[ ,order(CONT_TALLY,decreasing = TRUE)]
+order(CONT_TALLY[,"cont_max"])
 CONT_TALLY <- CONT_TALLY %>%
   select(X1,cont_max,CDS, everything())
 CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
@@ -141,6 +137,7 @@ if(dimension < 2){
 dimension <- 4
 }
 ```
+
 ```{r, fig.width = dimension, fig.height = dimension}
 #### Plots 
 #### Comp Plot
@@ -153,7 +150,6 @@ for(i in 4:tracker){
  CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = CONT_TALLY[[i]],
                                               text = CONT_TALLY[[i]], textposition = 'inside', name = FEAT_NAME )
 }
-
 CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
                                                         showgrid = TRUE,
                                                         showline = FALSE,
@@ -194,18 +190,17 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
 ```
-Fig. 2 Pointing a bar will display more details about currently shown element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the right corner on camera allows to download currently displayed plot as a png file.
 
 #### **Output table**
 Full BAKTA output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
+
+Table 3 The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 ```{r}
 BAKTA_PROC <- subset(BAKTA_PROC, select = -c(X2,X6,X7,X8))
 BAKTA_PROC <- BAKTA_PROC[, c(1,2,3,4,6,5)]
 #remove contig description
 BAKTA_PROC <- BAKTA_PROC %>% filter (X3 != "region")
-
 DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End", "Name","Attributes"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons',
-                    filter = list(position = 'top'),
                     options = list( dom = '<"top"fB>rt<"bottom"lp>i<"clear">', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis'), 
                       search = list(regex = TRUE, caseInsensitive = FALSE),
                       columnDefs = list(list(
@@ -217,15 +212,14 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                           "}")
                       ))), callback = JS('table.page(3).draw(false);')
                     )
-
 DTABLE
-
 ```
-Fig. 3 The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 
 #### **Version**
 
 BAKTA Version: **`r BAKTA_VERSION`**
 
+#### **Bibliography**
+Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
 
 Citation for BAKTA can be found under [DOI: 10.1101/2021.09.02.458689](https://doi.org/10.1101/2021.09.02.458689).
