@@ -76,14 +76,19 @@ Strain|%s",
 		organisms in the sample. It is based on how many bases of the matched organism were found in the analysed sequence ( called \"f_unique_to_query\").  
 		The diagram is interactive so that upon hovering over a part of it the organism and according the according percentage of unique bases in the 
 		anaylsed sequence are showed. 
-		Further organisms can get masked by clicking their name in the legend. The name of the organism is given in the form \"NCBI Accession-number organism-species\", e.g. \"GCF_000534275.1 Enterobacter kobei\".
-		A download-button for saving the diagramm as \"png\"-file is provided in the upper right corner while hovering over it.")
+		Further organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
+		provided in the upper right corner while hovering over it.")
+	} else {
+		sprintf("Metagenomic analysis failed. Probability could not be calculated.")
+	}
+}`
+
+`r if (METAGENOMIC_DATA_EXIST) {
+	if (METAGENOMIC_DATA_EXIST & METAGENOMIC_DATA_NOT_EMPTY) {
 		ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 10, sprintf("Warning, less than 10 percent could be taxonomically assigned to the analysed genome:\nThe organism might not be a bacteria/archea, is completely unknown without any close relatives, or the sample contains lots of contamination."),
 			ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 50, sprintf("Warning, less than 50 percent could be taxonomically assigned to analysed genome:\nThe organism might not be a bacteria/archea, is unknown, or the sample contains lots of contamination."),
 				ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 80, sprintf("Warning, less than 80 percent could be taxonomically assigned to the analysed genome:\nThe organism might be an unknown bacteria/archea species or the sample contains to much contamination."),
 					sprintf("The percentage of unique bases of %s in the analysed sequence amounts to %s percent.", METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_UNIQUE_TO_QUERY_PERCENTAGE))))
-	} else {
-		sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 	}
 }`
 
