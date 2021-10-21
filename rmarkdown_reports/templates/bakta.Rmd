@@ -72,9 +72,9 @@ Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` con
 
 Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing the three RNA genes: 5S, 16S and 23S in a close proximity. 
 
-Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA genes (this would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons)<span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
+Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA genes (this would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons) <span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
 "Warning found more than 15 operons!"
-}`</span><span style="color:red; font-weight: bold">`r if (all(sapply(list(ARNA,BRNA,CRNA), function(x) x == CRNA))){
+}`</span><span style="color:red; font-weight: bold">`r if (all(sapply(list(ARNA,BRNA,CRNA), function(x) x != CRNA))){
 "Warning some rRNA operons are missing one of the rRNA genes!"
 }`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check the genome quality or if contaminations from other organisms are present increasing the rRNA count.
 
