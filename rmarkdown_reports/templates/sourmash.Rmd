@@ -1,7 +1,10 @@
 ### Sourmash
 
-Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").  
-Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.
+Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").   
+Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.  
+
+Sourmash version used: #VERSIONENV#  
+Results are stored in: #PATHENV#  
 
 ```{r, echo = FALSE, message = FALSE, error=TRUE}
 CLASSIFICATION_FILE <- "#RESULTSENV#"

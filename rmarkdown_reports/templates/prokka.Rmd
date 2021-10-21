@@ -79,7 +79,10 @@ if (is.na(TRNA_N_GEN)){
 }
 ```
 Prokka is a software tool to annotate bacterial, archaeal and viral genomes quickly and produce standards-compliant output files. 
-[Prokka Github](https://github.com/tseemann/prokka)
+[Prokka Github](https://github.com/tseemann/prokka)  
+
+Prokka version used: #VERSIONENV#  
+Results are stored in: #PATHENV#  
 
 Prokka founded **`r GEN_N` features**, **`r GEN_N_TRUE` genes**, **`r GEN_N_HYP` hypothetical genes** <span style="color:red; font-weight: bold">
 `r if(GEN_N_HYP/GEN_N > 0.7){
@@ -241,10 +244,7 @@ DTABLE
 ```
 Fig. 3 The table is fully interactive and searchable. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 
-#### **Version**
-
-Prokka Version: **`r PROKKA_VERSION`**
-
+#### **Citation**
 
 Citation for Prokka can be found under [DOI: 10.1093/bioinformatics/btu153](https://doi.org/10.1093/bioinformatics/btu153).
 

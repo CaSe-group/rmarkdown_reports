@@ -65,7 +65,10 @@ CRNA <- BAKTA_PROC %>% filter(name == '23S ribosomal RNA') %>%  nrow()
 
 ```
 Bakta is a tool for the rapid & standardized annotation of bacterial genomes & plasmids. 
-[BAKTA Github](https://github.com/oschwengers/bakta)
+[BAKTA Github](https://github.com/oschwengers/bakta)  
+
+Bakta version used: #VERSIONENV#  
+Results are stored in: #PATHENV#  
 
 #### Overview
 Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
@@ -214,10 +217,6 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                     )
 DTABLE
 ```
-
-#### **Version**
-
-BAKTA Version: **`r BAKTA_VERSION`**
 
 #### **Bibliography**
 Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
