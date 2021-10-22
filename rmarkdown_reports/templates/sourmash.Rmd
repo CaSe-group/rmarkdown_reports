@@ -54,8 +54,15 @@ if (METAGENOMIC_DATA_EXIST) {
 ```
 
 `r if(CLASSIFICATION_DATA_EXIST) {
-	sprintf("Status of the classification is: **%s**.\n
-The sample **%s** was identified as following:\n
+	ifelse(SOURMASH_STATUS == "found", sprintf("Status of the classification is: <span style="color:green">**%s**</span>.\n", SOURMASH_STATUS),
+		ifelse(SOURMASH_STATUS == "disagree", sprintf("Status of the classification is: <span style="color:orange">**%s**</span>.\n", SOURMASH_STATUS),
+			sprintf("Status of the classification is: <span style="color:red">**%s**</span>.\n", SOURMASH_STATUS)))
+} else {
+	sprintf("Classification of the sample **failed**.")
+}`
+
+`r if(CLASSIFICATION_DATA_EXIST) {
+	sprintf("The sample **%s** was identified as following:\n
 **Table 1: Taxonomic classification of sample %s.**  NA means that sourmash was unable to classify this taxonomic rank.\n
 Taxonomic rank|Identified taxonomy
 -|-
@@ -67,10 +74,8 @@ Family|%s
 Genus|%s
 Species|%s
 Strain|%s", 
-	SOURMASH_STATUS, SAMPLE_NAME, SAMPLE_NAME, SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS,
+	SAMPLE_NAME, SAMPLE_NAME, SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS,
 	SOURMASH_ORDER, SOURMASH_FAMILY, SOURMASH_GENUS, SOURMASH_SPECIES, SOURMASH_STRAIN)
-} else {
-	sprintf("Classification of the sample **failed**.")
 }`
 
 `r if (METAGENOMIC_DATA_EXIST) {
@@ -88,9 +93,9 @@ Strain|%s",
 
 `r if (METAGENOMIC_DATA_EXIST) {
 	if (METAGENOMIC_DATA_EXIST & METAGENOMIC_DATA_NOT_EMPTY) {
-		ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 10, sprintf("Warning, less than 10 percent could be taxonomically assigned to the analysed genome:\nThe organism might not be a bacteria/archea, is completely unknown without any close relatives, or the sample contains lots of contamination."),
-			ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 50, sprintf("Warning, less than 50 percent could be taxonomically assigned to analysed genome:\nThe organism might not be a bacteria/archea, is unknown, or the sample contains lots of contamination."),
-				ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 80, sprintf("Warning, less than 80 percent could be taxonomically assigned to the analysed genome:\nThe organism might be an unknown bacteria/archea species or the sample contains to much contamination."),
+		ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 10, sprintf("<span style="color:red">Warning, less than 10 percent could be taxonomically assigned to the analysed genome:\nThe organism might not be a bacteria/archea, is completely unknown without any close relatives, or the sample contains lots of contamination.</span>"),
+			ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 50, sprintf("<span style="color:red">Warning, less than 50 percent could be taxonomically assigned to analysed genome:\nThe organism might not be a bacteria/archea, is unknown, or the sample contains lots of contamination.</span>"),
+				ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 80, sprintf("<span style="color:red">Warning, less than 80 percent could be taxonomically assigned to the analysed genome:\nThe organism might be an unknown bacteria/archea species or the sample contains to much contamination.</span>"),
 					sprintf("The percentage of unique bases of %s in the analysed sequence amounts to %s percent.", METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_UNIQUE_TO_QUERY_PERCENTAGE))))
 	}
 }`
