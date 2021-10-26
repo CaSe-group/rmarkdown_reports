@@ -22,8 +22,10 @@ METAGENOMIC_DATA_NOT_EMPTY <- FALSE
 GREP_F_MATCH <- FALSE
 
 if (file.exists(CLASSIFICATION_FILE)) {
-	CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
-	CLASSIFICATION_DATA_EXIST <- TRUE
+	if (!file.info(CLASSIFICATION_FILE)$size == 0) {
+		CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
+		CLASSIFICATION_DATA_EXIST <- TRUE
+	}
 } 
 
 if (CLASSIFICATION_DATA_EXIST) {
@@ -39,8 +41,10 @@ if (CLASSIFICATION_DATA_EXIST) {
 }
 
 if (file.exists(METAGENOME_FILE)) {
-	METAGENOMIC_DATA <- read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
-	METAGENOMIC_DATA_EXIST <- TRUE
+	if (!file.info(METAGENOME_FILE)$size == 0) {
+		METAGENOMIC_DATA <- read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
+		METAGENOMIC_DATA_EXIST <- TRUE
+	}
 } 
 
 if (METAGENOMIC_DATA_EXIST) {
@@ -123,6 +127,35 @@ if (METAGENOMIC_DATA_EXIST) {
 		ORGANISM_PERCENTAGE_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(F_UNIQUE_TO_QUERY_LIST)))
 		colnames(ORGANISM_PERCENTAGE_DATA) <- COLUMN_NAME_LIST
 
+		COLOR_LIST <- vector()
+		COLORS <- c("#636efa","#ef553b","#00cc96","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf")
+		if ("Unknown/Not found" %in% ORGANISM_LIST) {
+			for(ELEMENT in 1:(length(ORGANISM_LIST)-1)) {
+  				if (ELEMENT <= 10) {
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT]
+				} else {
+					ELEMENT_LAST_NUMBER <- str_sub(ELEMENT,-1,-1)
+					if (ELEMENT_LAST_NUMBER == 0) {
+						ELEMENT_LAST_NUMBER <- 10
+					}
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT_LAST_NUMBER]
+				}
+			}
+			COLOR_LIST[(length(COLOR_LIST)+1)] <- "#404040"
+		} else {
+			for(ELEMENT in 1:(length(ORGANISM_LIST)-1)) {
+				if (ELEMENT <= 10) {
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT]
+				} else {
+					ELEMENT_LAST_NUMBER <- str_sub(ELEMENT,-1,-1)
+					if (ELEMENT_LAST_NUMBER == 0) {
+						ELEMENT_LAST_NUMBER <- 10
+					}
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT_LAST_NUMBER]
+				}
+			}
+		}
+
 		CONTIG_PIE_CHART <- plot_ly(ORGANISM_PERCENTAGE_DATA, labels = ~ORGANISM, values = ~PERCENTAGE_UNIQUE_BASES, type = 'pie',
 	                		insidetextorientation = 'radial',
 	                		textposition = 'inside',
@@ -130,7 +163,7 @@ if (METAGENOMIC_DATA_EXIST) {
 	                		insidetextfont = list(color = '#FFFFFF'),
 	                		hoverinfo = 'label+text',
 	                		text = ~paste(PERCENTAGE_UNIQUE_BASES, ' %'),
-	                		marker = list(colors = colors,
+	                		marker = list(colors = COLOR_LIST,
 	                              		line = list(color = '#FFFFFF', width = 1))
 						)
 		CONTIG_PIE_CHART <- CONTIG_PIE_CHART %>% layout(
