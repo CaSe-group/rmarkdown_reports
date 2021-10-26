@@ -41,7 +41,7 @@ if (CLASSIFICATION_DATA_EXIST) {
 }
 
 if (file.exists(METAGENOME_FILE)) {
-	if (!file.info(METAGENOMIC_DATA)$size == 0) {
+	if (!file.info(METAGENOME_FILE)$size == 0) {
 		METAGENOMIC_DATA <- read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
 		METAGENOMIC_DATA_EXIST <- TRUE
 	}
