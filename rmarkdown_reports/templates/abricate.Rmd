@@ -22,9 +22,9 @@ ABRicate is a tool for mass screening of contigs for antimicrobial resistance or
 
 **`r if(nrow(abricate_input)<1){ sprintf("No resistance genes have been found in your sample!") }`**
 
-`r if(nrow(abricate_input)>0){ sprintf(The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.)} 
+`r if(nrow(abricate_input)>0){The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**.} 
 
-`r if(nrow(abricate_input)>0){ sprintf(Determined by ABRicate using the **`r if(nrow(abricate_input)<1){database_name [!duplicated(database_name),]}`** Database.)}
+`r if(nrow(abricate_input)>0){Determined by ABRicate using the **`r if(nrow(abricate_input)<1){database_name [!duplicated(database_name),]}`** Database.}
 
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
 if (nrow(abricate_input)>0){
