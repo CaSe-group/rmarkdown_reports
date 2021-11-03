@@ -13,7 +13,10 @@ library(plotly)
 ```
 ```{r, echo=FALSE}
 BAKTA_INPUT_FILE <- "#RESULTSENV#"
-BAKTA_VERSION <- "#NAMEENV#"
+SAMPLE_DATA <- "#NAMEENV#"
+BAKTA_VERSION <- "#VERSIONENV#"
+PATH <- "#PATHENV#" 
+
 BAKTA_RAW <- read_delim(BAKTA_INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
     col_names = FALSE, comment = c("#"), trim_ws = TRUE)
@@ -22,19 +25,19 @@ BAKTA_RAW <- na.omit(BAKTA_RAW)
 
 ```{r}
 #Sanity checks
-EXIT <- FALSE
+#EXIT <- FALSE
 #Check if empty file/structured in a not bakta way 
-if (nrow(BAKTA_RAW)<2){
-print("Source file seems empty, check if annotation file was created correctly")
-  EXIT <- TRUE
-}
+#if (nrow(BAKTA_RAW)<2){
+#print("Source file seems empty, check if annotation file was created correctly")
+#  EXIT <- TRUE
+#}
 ```
 
 ```{r}
 #Abort if fail sanity checks
-if (EXIT == TRUE){
-knit_exit()
-}
+#if (EXIT == TRUE){
+#knit_exit()
+#}
 ```
 
 ```{r}
@@ -56,19 +59,20 @@ if (is.na(RRNA_N_GEN)){
 if (is.na(TRNA_N_GEN)){
   TRNA_N_GEN <- 0
 }
-
 #rRNA count
 ARNA <- BAKTA_PROC %>% filter(name == '5S ribosomal RNA') %>%  nrow()
 BRNA <- BAKTA_PROC %>% filter(name == '16S ribosomal RNA') %>%  nrow()
 CRNA <- BAKTA_PROC %>% filter(name == '23S ribosomal RNA') %>%  nrow()
-
-
 ```
 Bakta is a tool for the rapid & standardized annotation of bacterial genomes & plasmids. 
 [BAKTA Github](https://github.com/oschwengers/bakta)  
 
-Bakta version used: #VERSIONENV#  
-Results are stored in: #PATHENV#  
+#### Data
+Sample name: **`r SAMPLE_DATA`**
+
+Bakta version used:  **`r BAKTA_VERSION`**
+
+Results are stored in: **`r PATH`**
 
 #### Overview
 Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
@@ -132,19 +136,17 @@ if (!"rRNA" %in% colnames(CONT_TALLY)) {
 }
 #### Fig dimensions
 len <- nrow(CONT_LEN)
-if(len < 9){
-len <- 2
+dim <- 0 
+if(len > 10){
+dim <- as.numeric((len - 10) *100) 
 }
-dimension <- len * 0.14
-if(dimension < 2){
-dimension <- 4
-}
+dim_high <- as.numeric(600+dim) 
 ```
 
-```{r, fig.width = dimension, fig.height = dimension}
+```{r}
 #### Plots 
 #### Comp Plot
-CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~CDS, type = 'bar', orientation = 'h',
+CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~CDS, type = 'bar', orientation = 'h',width = 950, height = dim_high,
                       text = CONT_TALLY$CDS,textposition = 'inside', name = 'CDS',
         hovertemplate = paste('(%{x}, %{y})'))
 tracker <- ncol(CONT_TALLY) 
@@ -170,7 +172,7 @@ CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
                                            paper_bgcolor = 'rgb(255, 255, 255)', plot_bgcolor = 'rgb(255, 255, 255)',
                                            showlegend = TRUE) 
 #### Length plot
-CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$X1, name = 'Contig length',
+CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$X1, name = 'Contig length',width = 950, height = dim_high,
               type = 'bar', mode = 'markers',
               line = list(color = 'rgb(128, 0, 128)'),
               text=CONT_TALLY$cont_max, textposition = 'auto',
@@ -217,7 +219,6 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                     )
 DTABLE
 ```
-
 #### **Bibliography**
 Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
 
