@@ -1,7 +1,10 @@
 ### Sourmash
 
-Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").  
-Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.
+Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").   
+Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.  
+
+Sourmash version used: #VERSIONENV#  
+Results are stored in: #PATHENV#  
 
 ```{r, echo = FALSE, message = FALSE, error=TRUE}
 CLASSIFICATION_FILE <- "#RESULTSENV#"
@@ -15,11 +18,14 @@ library(stringr)
 
 CLASSIFICATION_DATA_EXIST <- FALSE
 METAGENOMIC_DATA_EXIST <- FALSE
+METAGENOMIC_DATA_NOT_EMPTY <- FALSE
 GREP_F_MATCH <- FALSE
 
 if (file.exists(CLASSIFICATION_FILE)) {
-	CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
-	CLASSIFICATION_DATA_EXIST <- TRUE
+	if (!file.info(CLASSIFICATION_FILE)$size == 0) {
+		CLASSIFICATION_DATA <-read.table(CLASSIFICATION_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
+		CLASSIFICATION_DATA_EXIST <- TRUE
+	}
 } 
 
 if (CLASSIFICATION_DATA_EXIST) {
@@ -35,38 +41,32 @@ if (CLASSIFICATION_DATA_EXIST) {
 }
 
 if (file.exists(METAGENOME_FILE)) {
-	METAGENOMIC_DATA <-read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
-	METAGENOMIC_DATA_EXIST <- TRUE
+	if (!file.info(METAGENOME_FILE)$size == 0) {
+		METAGENOMIC_DATA <- read.table(METAGENOME_FILE, sep=",", header=TRUE, na.strings = c("", "NA"))
+		METAGENOMIC_DATA_EXIST <- TRUE
+	}
 } 
 
 if (METAGENOMIC_DATA_EXIST) {
-	F_MATCH_VALUE <- NA
-	METAGENOMIC_DATA_NOT_EMPTY <- FALSE
-	if (!is.na(METAGENOMIC_DATA$f_match[1]) & !is.na(METAGENOMIC_DATA$name[1])) {
+	if (!is.na(METAGENOMIC_DATA$f_unique_to_query[1]) & !is.na(METAGENOMIC_DATA$name[1])) {
 		METAGENOMIC_DATA_NOT_EMPTY <- TRUE
-		if (CLASSIFICATION_DATA_EXIST) {
-			F_MATCH_VALUE <- ifelse(!is.na(SOURMASH_SPECIES) & any(grepl(SOURMASH_SPECIES, METAGENOMIC_DATA$name)), round(METAGENOMIC_DATA$f_match[grep(SOURMASH_SPECIES, METAGENOMIC_DATA$name)],2),
-					ifelse(!is.na(SOURMASH_GENUS) & any(grepl(SOURMASH_GENUS, METAGENOMIC_DATA$name)), round(METAGENOMIC_DATA$f_match[grep(SOURMASH_GENUS, METAGENOMIC_DATA$name)],2),
-						round(METAGENOMIC_DATA$f_match[1],2)))
-
-			GREP_F_MATCH <- ifelse(!is.na(SOURMASH_SPECIES) & any(grepl(SOURMASH_SPECIES, METAGENOMIC_DATA$name)), TRUE,
-					ifelse(!is.na(SOURMASH_GENUS) & any(grepl(SOURMASH_GENUS, METAGENOMIC_DATA$name)), TRUE,
-						FALSE))
-
-			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- ifelse(!is.na(SOURMASH_SPECIES) & any(grepl(SOURMASH_SPECIES, METAGENOMIC_DATA$name)), NA,
-					ifelse(!is.na(SOURMASH_GENUS) & any(grepl(SOURMASH_GENUS, METAGENOMIC_DATA$name)), NA,
-						str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')))
-		} else {
-			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
-			F_MATCH_VALUE <- round(METAGENOMIC_DATA$f_match[1],2)
-  		}
+		METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY <- str_remove(toString(strsplit(toString(METAGENOMIC_DATA$name[1]), ' ',)[[1]][2:3]), ',')
+		F_UNIQUE_TO_QUERY_ORGANISM_WITH_HIGHEST_PROBABILITY <- METAGENOMIC_DATA$f_unique_to_query[1]
+		F_UNIQUE_TO_QUERY_PERCENTAGE <- round((F_UNIQUE_TO_QUERY_ORGANISM_WITH_HIGHEST_PROBABILITY * 100), 1)
 	}
 }
 ```
 
 `r if(CLASSIFICATION_DATA_EXIST) {
-	sprintf("Status of the classification is: **%s**.\n
-The sample **%s** was identified as following:\n
+	ifelse(SOURMASH_STATUS == "found", sprintf("Status of the classification is: <span style='color:green'>**%s**</span>.\n", SOURMASH_STATUS),
+		ifelse(SOURMASH_STATUS == "disagree", sprintf("Status of the classification is: <span style='color:orange'>**%s**</span>.\n", SOURMASH_STATUS),
+			sprintf("Status of the classification is: <span style='color:red'>**%s**</span>.\n", SOURMASH_STATUS)))
+} else {
+	sprintf("Classification of the sample **failed**.")
+}`
+
+`r if(CLASSIFICATION_DATA_EXIST) {
+	sprintf("The sample **%s** was identified as following:\n
 **Table 1: Taxonomic classification of sample %s.**  NA means that sourmash was unable to classify this taxonomic rank.\n
 Taxonomic rank|Identified taxonomy
 -|-
@@ -78,20 +78,18 @@ Family|%s
 Genus|%s
 Species|%s
 Strain|%s", 
-	SOURMASH_STATUS, SAMPLE_NAME, SAMPLE_NAME, SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS,
+	SAMPLE_NAME, SAMPLE_NAME, SOURMASH_SUPERKINGDOM, SOURMASH_PHYLUM, SOURMASH_CLASS,
 	SOURMASH_ORDER, SOURMASH_FAMILY, SOURMASH_GENUS, SOURMASH_SPECIES, SOURMASH_STRAIN)
-} else {
-	sprintf("Classification of the sample **failed**.")
 }`
 
 `r if (METAGENOMIC_DATA_EXIST) {
-	if(METAGENOMIC_DATA_NOT_EMPTY) {
-		if (GREP_F_MATCH) {
-			sprintf("Probability for this organism is **%s** (Score is from 0 to 1; 1 means exact match).\n", F_MATCH_VALUE)
-		} else {
-			sprintf("Organism with the highest probability based on the metagenomic analysis is: **%s** with a value of **%s** (Score is from 0 to 1; 1 means exact match).\n",
-			METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_MATCH_VALUE)
-		}
+	if (METAGENOMIC_DATA_EXIST & METAGENOMIC_DATA_NOT_EMPTY) {
+		sprintf("#### **Distribution of identified organisms.**\n\n  The following chart gives a overview about all identified 
+		organisms in the sample. It is based on how many bases of the matched organism were found in the analysed sequence ( called \"f_unique_to_query\").  
+		The diagram is interactive so that upon hovering over a part of it the organism and according the according percentage of unique bases in the 
+		anaylsed sequence are showed. 
+		Further organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
+		provided in the upper right corner while hovering over it.")
 	} else {
 		sprintf("Metagenomic analysis failed. Probability could not be calculated.")
 	}
@@ -99,11 +97,10 @@ Strain|%s",
 
 `r if (METAGENOMIC_DATA_EXIST) {
 	if (METAGENOMIC_DATA_EXIST & METAGENOMIC_DATA_NOT_EMPTY) {
-		sprintf("#### **Distribution of identified organisms.**\n\n  The following chart gives a overview about all identified 
-		organisms in the sample. It is based on how many bases belong to each organism ( called \"intersect_bp\").  
-		The diagram is interactive so that upon hovering over a part of it the organism and according intersecting bp are showed. Further 
-		organisms can get masked by clicking their name in the legend. A download-button for saving the diagramm as \"png\"-file is 
-		provided in the upper right corner while hovering over it.")
+		ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 10, sprintf("<span style='color:red'>Warning, less than 10 percent could be taxonomically assigned to the analysed genome:\nThe organism might not be a bacteria/archea, is completely unknown without any close relatives, or the sample contains lots of contamination.</span>"),
+			ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 50, sprintf("<span style='color:red'>Warning, less than 50 percent could be taxonomically assigned to analysed genome:\nThe organism might not be a bacteria/archea, is unknown, or the sample contains lots of contamination.</span>"),
+				ifelse(F_UNIQUE_TO_QUERY_PERCENTAGE < 80, sprintf("<span style='color:red'>Warning, less than 80 percent could be taxonomically assigned to the analysed genome:\nThe organism might be an unknown bacteria/archea species or the sample contains to much contamination.</span>"),
+					sprintf("The percentage of unique bases of %s in the analysed sequence amounts to %s percent.", METAGENOMIC_ORGANISM_WITH_HIGHEST_PROBABILITY, F_UNIQUE_TO_QUERY_PERCENTAGE))))
 	}
 }`
 
@@ -112,28 +109,70 @@ if (METAGENOMIC_DATA_EXIST) {
 	if (METAGENOMIC_DATA_NOT_EMPTY) {
 		ORGANISM_LIST <- list(METAGENOMIC_DATA$name)
 		for (ELEMENT in 1:length(ORGANISM_LIST[[1]])) {
-			ORGANISM_LIST[[1]][ELEMENT] <- str_remove(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][2:3]), ',')
+			ORGANISM_LIST[[1]][ELEMENT] <- str_remove_all(toString(strsplit(ORGANISM_LIST[[1]][ELEMENT], ' ')[[1]][1:3]), ',')
 		}
 
-		BP_COUNT_LIST <- list(METAGENOMIC_DATA$intersect_bp)
-		COLUMN_NAME_LIST <- c("ORGANISM", "BP_COUNT")
-		ORGANISM_BP_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(BP_COUNT_LIST)))
-		colnames(ORGANISM_BP_DATA) <- COLUMN_NAME_LIST
+		F_UNIQUE_TO_QUERY_LIST <- lapply(list(METAGENOMIC_DATA$f_unique_to_query),"*",100)
+		PERCENTAGE_UNKNOWN <- 100 - sum(unlist(F_UNIQUE_TO_QUERY_LIST))
+		
+		if (PERCENTAGE_UNKNOWN > 0) {
+			ORGANISM_LIST <- unlist(c(ORGANISM_LIST, "Unknown/Not found"))
+		}
 
-		CONTIG_PIE_CHART <- plot_ly(ORGANISM_BP_DATA, labels = ~ORGANISM, values = ~BP_COUNT, type = 'pie',
+		if (PERCENTAGE_UNKNOWN > 0) {
+			F_UNIQUE_TO_QUERY_LIST <- c(F_UNIQUE_TO_QUERY_LIST, PERCENTAGE_UNKNOWN)
+		}
+
+		COLUMN_NAME_LIST <- c("ORGANISM", "PERCENTAGE_UNIQUE_BASES")
+		ORGANISM_PERCENTAGE_DATA <- data.frame(ORGANISM_LIST, as.numeric(unlist(F_UNIQUE_TO_QUERY_LIST)))
+		colnames(ORGANISM_PERCENTAGE_DATA) <- COLUMN_NAME_LIST
+
+		COLOR_LIST <- vector()
+		COLORS <- c("#636efa","#ef553b","#00cc96","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf")
+		if ("Unknown/Not found" %in% ORGANISM_LIST) {
+			for(ELEMENT in 1:(length(ORGANISM_LIST)-1)) {
+  				if (ELEMENT <= 10) {
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT]
+				} else {
+					ELEMENT_LAST_NUMBER <- str_sub(ELEMENT,-1,-1)
+					if (ELEMENT_LAST_NUMBER == 0) {
+						ELEMENT_LAST_NUMBER <- 10
+					}
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT_LAST_NUMBER]
+				}
+			}
+			COLOR_LIST[(length(COLOR_LIST)+1)] <- "#404040"
+		} else {
+			for(ELEMENT in 1:(length(ORGANISM_LIST)-1)) {
+				if (ELEMENT <= 10) {
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT]
+				} else {
+					ELEMENT_LAST_NUMBER <- str_sub(ELEMENT,-1,-1)
+					if (ELEMENT_LAST_NUMBER == 0) {
+						ELEMENT_LAST_NUMBER <- 10
+					}
+					COLOR_LIST[ELEMENT] <- COLORS[ELEMENT_LAST_NUMBER]
+				}
+			}
+		}
+
+		CONTIG_PIE_CHART <- plot_ly(ORGANISM_PERCENTAGE_DATA, labels = ~ORGANISM, values = ~PERCENTAGE_UNIQUE_BASES, type = 'pie',
 	                		insidetextorientation = 'radial',
 	                		textposition = 'inside',
 	                		textinfo = 'percent',
 	                		insidetextfont = list(color = '#FFFFFF'),
 	                		hoverinfo = 'label+text',
-	                		text = ~paste(BP_COUNT, ' bp'),
-	                		marker = list(colors = colors,
+	                		text = ~paste(PERCENTAGE_UNIQUE_BASES, ' %'),
+	                		marker = list(colors = COLOR_LIST,
 	                              		line = list(color = '#FFFFFF', width = 1))
 						)
 		CONTIG_PIE_CHART <- CONTIG_PIE_CHART %>% layout(
 	          				xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-	          				yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
-						)
+	          				yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+							legend = list(orientation = "h",   # show entries horizontally
+										xanchor = "center",  # use center of legend as anchor
+										x = 0.5)
+							)
 
 		CONTIG_PIE_CHART
 	}

@@ -20,7 +20,18 @@ abricate_sample <- nrow(abricate_input)
 abricate_database <- database_name [!duplicated(database_name),]
 ```
 
+<<<<<<< HEAD
 ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.
+=======
+
+`r if(nrow(abricate_input)<1){ sprintf("No resistance genes have been found in your sample!") }`
+
+
+ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.  
+
+ABRicate version used: #VERSIONENV#  
+Results are stored in: #PATHENV#  
+>>>>>>> origin/main
 
 `r if(nrow(abricate_input)>0){ 
   sprintf("The sample **%s** contains **%s** resistance genes.\n
@@ -88,10 +99,12 @@ DTABLE <- datatable(selected_input,
   rownames = FALSE, 
   class = 'hover', 
   extensions  = 'Buttons', 
+  filter = list(position = 'top'),
   options = list(
+    search = list(regex = TRUE, caseInsensitive = FALSE),
     pageLength = 10,
     lengthMenu = c(5, 10, 15, 20),
-    dom = 'Bfrtip', 
+    dom = '<"top"fB>rt<"bottom"lp>i<"clear">', 
     buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis')
   )
 )
