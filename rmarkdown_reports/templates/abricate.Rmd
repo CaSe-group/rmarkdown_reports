@@ -31,7 +31,7 @@ Results are stored in: #PATHENV#
 
           sample_name, abricate_sample, abricate_database)
 } else { 
-  sprintf("No resistance genes have been found in your sample!")
+  sprintf("**No resistance genes have been found in your sample!**")
 }`
 
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
@@ -73,13 +73,13 @@ plot_ly(
   sprintf("**Fig.1**: Interactive sunburst chart showing the detected resistances in %s. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.",
 sample_name)
-}
+}`
 
 #### **Detailed resistance gene table**
 `r if(nrow(abricate_input)>0){ 
-  sprintf("**Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.",
+  sprintf("**Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
   sample_name)
-}
+}`
   
 ```{r,echo=FALSE}
 # Produce Table
