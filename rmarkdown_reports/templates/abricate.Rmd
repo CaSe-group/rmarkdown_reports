@@ -75,9 +75,9 @@ For filtering the results after resistances click on it. The plot can be saved i
 sample_name)
 }`
 
-#### **Detailed resistance gene table**
 `r if(nrow(abricate_input)>0){ 
-  sprintf("**Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
+  sprintf("#### **Detailed resistance gene table**\n
+  **Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
   sample_name)
 }`
   
