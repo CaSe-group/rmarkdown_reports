@@ -1,10 +1,16 @@
 ### Sourmash
 
-Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k").   
-Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.  
+Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k"). Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.  
 
-Sourmash version used: #VERSIONENV#  
-Results are stored in: #PATHENV#  
+#### Data
+
+Sample name: **#NAMEENV#**    
+
+Sourmash version used: **#VERSIONENV#**     
+
+Results are stored in: **#PATHENV#**    
+
+#### Overview
 
 ```{r, echo = FALSE, message = FALSE, error=TRUE}
 CLASSIFICATION_FILE <- "#RESULTSENV#"
@@ -186,11 +192,9 @@ if (METAGENOMIC_DATA_EXIST) {
 	}
 }`
 
-#### **Citation**
+#### Links and Citation
 
-When publishing this data cite sourmash as follows:
 "Brown et al, (2016), sourmash: a library for MinHash sketching of DNA,
-Journal of Open Source Software, 1(5), 27, doi:10.21105/joss.00027"
+Journal of Open Source Software, 1(5), 27, [DOI: 10.21105/joss.00027](https://www.doi.org/10.21105/joss.00027)"
 
-The paper can be found under [DOI: 10.21105/joss.00027](https://www.doi.org/10.21105/joss.00027).
-Code and further information can be found in the [github-repository](https://github.com/sourmash-bio/sourmash).
+Code and further information can be found *via* the [github-repository](https://github.com/sourmash-bio/sourmash).

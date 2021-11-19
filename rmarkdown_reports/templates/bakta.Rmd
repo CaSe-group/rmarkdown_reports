@@ -107,7 +107,7 @@ COMP_FIG
 
 Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download currently displayed plot as a png file.  
 
-#### **Composition and contig length plots**
+#### Composition and contig length plots
 Visualisation of features found on contigs compared with length of contigs.
 
 Fig. 2 Composition by annotation features of each contig. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
@@ -196,7 +196,7 @@ COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titl
 COMBINED_CONT_FIG
 ```
 
-#### **Output table**
+#### Output table
 Full BAKTA output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 
 Table 3 The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
@@ -219,7 +219,7 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                     )
 DTABLE
 ```
-#### **Bibliography**
-Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
+#### Links and Citation
+Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000  
 
 Citation for BAKTA can be found under [DOI: 10.1101/2021.09.02.458689](https://doi.org/10.1101/2021.09.02.458689).
