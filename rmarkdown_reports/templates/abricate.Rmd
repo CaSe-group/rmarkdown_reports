@@ -6,8 +6,8 @@
 # Only change this variables
 input_file <- "#RESULTSENV#"
 sample_name <- "#NAMEENV#"
-path <- "#PATHENV#"
 abricate_version <- "#VERSIONENV#"
+path <- "#PATHENV#"
 
 # calling libs
 suppressMessages(library(plotly))
@@ -75,7 +75,6 @@ plot_ly(
 )
 }
 ```
-
 `r if(nrow(abricate_input)>0){ 
   sprintf("**Fig.1**: Interactive sunburst chart showing the detected resistances in **%s**. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.",
