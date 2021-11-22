@@ -110,7 +110,7 @@ DTABLE
 }
 ```
 
-#### Citation
+#### Links and Citation
 If you publish the results use following citation:
 
 Seemann T, Abricate, Github https://github.com/tseemann/abricate  
