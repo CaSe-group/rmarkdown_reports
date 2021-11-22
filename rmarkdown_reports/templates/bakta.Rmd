@@ -75,9 +75,9 @@ Bakta version used:  **`r BAKTA_VERSION`**
 Results are stored in: **`r PATH`**
 
 #### Overview
-Bakta founded **`r GEN_N` features**  Features are located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
+Bakta founded **`r GEN_N` features** located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
 
-Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing the three RNA genes: 5S, 16S and 23S in a close proximity. 
+Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing the three rRNA genes: 5S, 16S and 23S in close proximity. 
 
 Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA genes (this would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons) <span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
 "Warning found more than 15 operons!"
@@ -86,7 +86,7 @@ Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA
 }`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check the genome quality or if contaminations from other organisms are present increasing the rRNA count.
 
 
-Fig.1  Pie chart representing all the annotation features identified by Bakta
+
 ```{r}
 #margins
 M <- list(
@@ -104,13 +104,11 @@ COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450) %
                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 COMP_FIG
 ```
+**Figure 1:**  Pie chart representing all the annotation features identified by Bakta. Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download the currently displayed plot as a png file.  
 
-Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download currently displayed plot as a png file.  
-
-#### **Composition and contig length plots**
+#### Composition and contig length plots
 Visualisation of features found on contigs compared with length of contigs.
 
-Fig. 2 Composition by annotation features of each contig. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
 ```{r include = FALSE}
 #### Data conversion 
 CONT_LEN <- BAKTA_PROC %>% select(X1, X5) %>% group_by(X1) %>% summarise(
@@ -138,7 +136,7 @@ if (!"rRNA" %in% colnames(CONT_TALLY)) {
 len <- nrow(CONT_LEN)
 dim <- 0 
 if(len > 10){
-dim <- as.numeric((len - 10) *100) 
+dim <- as.numeric((len - 10) *10) 
 }
 dim_high <- as.numeric(600+dim) 
 ```
@@ -195,11 +193,12 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
 ```
+**Figure 2 Composition by annotation features of each contig**. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
 
-#### **Output table**
+#### Output table
 Full BAKTA output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 
-Table 3 The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
+**Table 3**: The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 ```{r}
 BAKTA_PROC <- subset(BAKTA_PROC, select = -c(X2,X6,X7,X8))
 BAKTA_PROC <- BAKTA_PROC[, c(1,2,3,4,6,5)]
@@ -219,7 +218,7 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                     )
 DTABLE
 ```
-#### **Bibliography**
-Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
+#### Links and Citation
+Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000  
 
 Citation for BAKTA can be found under [DOI: 10.1101/2021.09.02.458689](https://doi.org/10.1101/2021.09.02.458689).

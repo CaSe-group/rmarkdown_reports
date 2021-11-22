@@ -21,19 +21,23 @@ abricate_database <- database_name [!duplicated(database_name),]
 ```
 ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.  
 
-ABRicate version used: #VERSIONENV#  
-Results are stored in: #PATHENV#  
+#### Data
 
+Sample name: **#NAMEENV#**  
+
+ABRicate version used: **#VERSIONENV#**   
+
+Results are stored in: **#PATHENV#**  
 
 `r if(nrow(abricate_input)>0) { 
   sprintf("The sample **%s** contains **%s** resistance genes.\n
           Determined by ABRicate using the **%s** Database.",
-
-          sample_name, abricate_sample, abricate_database)
+                    sample_name, abricate_sample, abricate_database)
 } else { 
   sprintf("**No resistance genes have been found in your sample!**")
 }`
 
+#### Overview
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
 if (nrow(abricate_input)>0){
 # remove duplicates
@@ -69,6 +73,7 @@ plot_ly(
 )
 }
 ```
+
 `r if(nrow(abricate_input)>0){ 
   sprintf("**Fig.1**: Interactive sunburst chart showing the detected resistances in %s. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.",
@@ -80,7 +85,7 @@ sample_name)
   **Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
   sample_name)
 }`
-  
+
 ```{r,echo=FALSE}
 # Produce Table
 if (nrow(abricate_input)>0){
@@ -103,11 +108,11 @@ DTABLE
 }
 ```
 
-#### **Citation**
+#### Links and Citation
 If you publish the results use following citation:
 
-Seemann T, Abricate, Github https://github.com/tseemann/abricate
-NCBI AMRFinderPlus - doi: 10.1128/AAC.00483-19
-CARD - doi:10.1093/nar/gkw1004
-Resfinder - doi:10.1093/jac/dks261
-PlasmidFinder - doi:10.1128/AAC.02412-14
+Seemann T, Abricate, Github https://github.com/tseemann/abricate  
+NCBI AMRFinderPlus - doi: 10.1128/AAC.00483-19  
+CARD - doi:10.1093/nar/gkw1004  
+Resfinder - doi:10.1093/jac/dks261  
+PlasmidFinder - doi:10.1128/AAC.02412-14  
