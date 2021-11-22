@@ -29,6 +29,7 @@ ABRicate version used: **#VERSIONENV#**
 
 Results are stored in: **#PATHENV#**  
 
+#### Overview
 `r if(nrow(abricate_input)>0) { 
   sprintf("The sample **%s** contains **%s** resistance genes. Determined by ABRicate using the **%s** Database.",
                     sample_name, abricate_sample, abricate_database)
@@ -36,11 +37,8 @@ Results are stored in: **#PATHENV#**
   sprintf("**No resistance genes have been found in your sample!**")
 }`
 
-`r if(nrow(abricate_input)>0){ 
-  sprintf("#### **Overview** ")
-}`
-
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
+
 if (nrow(abricate_input)>0){
 # remove duplicates
 df <- abricate_input %>% select(GENE, RESISTANCE)
@@ -83,8 +81,8 @@ sample_name)
 }`
 
 `r if(nrow(abricate_input)>0){ 
-  sprintf("#### **Detailed resistance gene table**\n
-  **Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
+  sprintf("#### Resistance gene table\n
+  **Tab.1**: Interaktive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
   sample_name)
 }`
 
@@ -110,7 +108,7 @@ DTABLE
 }
 ```
 
-#### Links and Citation
+#### Citation
 If you publish the results use following citation:
 
 Seemann T, Abricate, Github https://github.com/tseemann/abricate  
