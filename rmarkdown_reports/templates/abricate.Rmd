@@ -75,7 +75,7 @@ plot_ly(
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.
 
 #### Resistance gene table
-**Tab.1**: Interaktive table showing the abricate raw data for the sample **`r sample_name`**. You can filter and download the table directly.
+**Tab.1**: Interactive table showing the abricate raw data for the sample **`r sample_name`**. You can filter and download the table directly.
 ```{r,echo=FALSE}
 # Produce Table
 
