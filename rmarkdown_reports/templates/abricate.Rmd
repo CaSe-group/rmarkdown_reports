@@ -6,6 +6,8 @@
 # Only change this variables
 input_file <- "#RESULTSENV#"
 sample_name <- "#NAMEENV#"
+path <- "#PATHENV#"
+abricate_version <- "#VERSIONENV#"
 
 # calling libs
 suppressMessages(library(plotly))
@@ -82,7 +84,7 @@ sample_name)
 
 `r if(nrow(abricate_input)>0){ 
   sprintf("#### Resistance gene table\n
-  **Tab.1**: Interaktive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
+  **Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
   sample_name)
 }`
 
