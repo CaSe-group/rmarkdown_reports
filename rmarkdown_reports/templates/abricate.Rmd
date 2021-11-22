@@ -6,6 +6,8 @@
 # Only change this variables
 input_file <- "#RESULTSENV#"
 sample_name <- "#NAMEENV#"
+abricate_version <- "#VERSIONENV#"
+path <- "#PATHENV#"
 
 # calling libs
 suppressMessages(library(plotly))
