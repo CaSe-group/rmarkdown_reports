@@ -1,7 +1,7 @@
 <!-- Report template, please replace {TOOL}  -->
 
 ### ABRicate
-
+ 
 ```{r,echo=FALSE}
 # Only change this variables
 input_file <- "#RESULTSENV#"
@@ -18,12 +18,9 @@ suppressMessages(library(DT))
 
 abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
 database_name <- abricate_input %>% select (DATABASE)
+abricate_sample <- nrow(abricate_input)
+abricate_database <- database_name [!duplicated(database_name),]
 ```
-
-
-`r if(nrow(abricate_input)<1){ sprintf("No resistance genes have been found in your sample!") }`
-
-
 ABRicate is a tool for mass screening of contigs for antimicrobial resistance or virulence genes.  
 
 #### Data
@@ -32,15 +29,19 @@ Sample name: **#NAMEENV#**
 
 ABRicate version used: **#VERSIONENV#**   
 
-Results are stored in: **#PATHENV#**   
+Results are stored in: **#PATHENV#**  
 
 #### Overview
-
-The sample **`r sample_name`** contains **`r nrow(abricate_input)` resistance genes**. Determined by ABRicate using the **`r database_name [!duplicated(database_name),]`** Database. 
-
+`r if(nrow(abricate_input)>0) { 
+  sprintf("The sample **%s** contains **%s** resistance genes. Determined by ABRicate using the **%s** Database.",
+                    sample_name, abricate_sample, abricate_database)
+} else { 
+  sprintf("**No resistance genes have been found in your sample!**")
+}`
 
 ```{r,echo=FALSE,fig.width = 9, fig.height = 9}
 
+if (nrow(abricate_input)>0){
 # remove duplicates
 df <- abricate_input %>% select(GENE, RESISTANCE)
 df_mod <- df [!duplicated(df),]
@@ -72,15 +73,23 @@ plot_ly(
   parents = parents_final,
   type = 'sunburst'
 )
+}
 ```
-**Fig.1**: Interactive sunburst chart showing the detected resistances in `r sample_name`. The first ring shows the resistances and the second the associated resistance genes.
-For filtering the results after resistances click on it. The plot can be saved in the right upper corner.
+`r if(nrow(abricate_input)>0){ 
+  sprintf("**Fig.1**: Interactive sunburst chart showing the detected resistances in **%s**. The first ring shows the resistances and the second the associated resistance genes.
+For filtering the results after resistances click on it. The plot can be saved in the right upper corner.",
+sample_name)
+}`
 
-#### Resistance gene table
-**Tab.1**: Interactive table showing the abricate raw data for the sample **`r sample_name`**. You can filter and download the table directly.
+`r if(nrow(abricate_input)>0){ 
+  sprintf("#### Resistance gene table\n
+  **Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
+  sample_name)
+}`
+
 ```{r,echo=FALSE}
 # Produce Table
-
+if (nrow(abricate_input)>0){
 selected_input <- abricate_input %>% select(SEQUENCE, START, END, STRAND, GENE, ACCESSION, PRODUCT, RESISTANCE)
 
 DTABLE <- datatable(selected_input, 
@@ -97,6 +106,7 @@ DTABLE <- datatable(selected_input,
   )
 )
 DTABLE 
+}
 ```
 
 #### Links and Citation
