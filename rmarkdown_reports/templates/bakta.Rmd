@@ -1,7 +1,9 @@
 ### Bakta
+```{r}
+#options(warn = -1, message= -1)
+```
 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, message = FALSE, warning=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -11,16 +13,16 @@ library(DT)
 library(knitr)
 library(plotly)
 ```
-```{r, echo=FALSE}
+```{r}
 BAKTA_INPUT_FILE <- "#RESULTSENV#"
 SAMPLE_DATA <- "#NAMEENV#"
 BAKTA_VERSION <- "#VERSIONENV#"
 PATH <- "#PATHENV#" 
 
-BAKTA_RAW <- read_delim(BAKTA_INPUT_FILE, 
+BAKTA_RAW <- suppressMessages(read_delim(BAKTA_INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
-    col_names = FALSE, comment = c("#"), trim_ws = TRUE)
-BAKTA_RAW <- na.omit(BAKTA_RAW)
+    col_names = FALSE, comment = c("#"), trim_ws = TRUE))
+BAKTA_RAW <- invisible(na.omit(BAKTA_RAW))
 ```
 
 ```{r}
@@ -45,6 +47,16 @@ BAKTA_RAW <- na.omit(BAKTA_RAW)
 BAKTA_PROC <- separate(BAKTA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
 BAKTA_PROC$name <- gsub(";.*","",BAKTA_PROC$name)
 BAKTA_PROC <- BAKTA_PROC %>% filter(X3 != "gene")
+
+BAKTA_PROC <- separate(BAKTA_PROC, X9, c(NA, "ID"), remove = FALSE, "ID=")
+BAKTA_PROC$ID <- gsub(";.*","",BAKTA_PROC$ID)
+
+NO_CDS_WARNING <- FALSE
+CONT_TALLY_CURSOR <- 4
+if (('CDS' %in% unique(BAKTA_PROC$X3))==FALSE){
+  NO_CDS_WARNING <- TRUE
+  CONT_TALLY_CURSOR <- 3
+}
 ```
 
 ```{r}
@@ -63,6 +75,9 @@ if (is.na(TRNA_N_GEN)){
 ARNA <- BAKTA_PROC %>% filter(name == '5S ribosomal RNA') %>%  nrow()
 BRNA <- BAKTA_PROC %>% filter(name == '16S ribosomal RNA') %>%  nrow()
 CRNA <- BAKTA_PROC %>% filter(name == '23S ribosomal RNA') %>%  nrow()
+
+#reorder
+PIE <- PIE[order(-PIE$n),] 
 ```
 Bakta is a tool for the rapid & standardized annotation of bacterial genomes & plasmids. 
 [BAKTA Github](https://github.com/oschwengers/bakta)  
@@ -77,6 +92,10 @@ Results are stored in: **`r PATH`**
 #### Overview
 Bakta founded **`r GEN_N` features** located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
 
+<span style="color:red; font-weight: bold">`r if (NO_CDS_WARNING == TRUE){
+"Warning! No coding sequences (CDS) were found! Please check your fasta! "
+}`</span>
+
 Bacterial species can contain up to 15 rRNA operons [(Klappenbach et al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91988/#B28) each containing the three rRNA genes: 5S, 16S and 23S in close proximity. 
 
 Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA genes (this would correspond to ~`r as.integer((ARNA+BRNA+CRNA)/3)` operons) <span style="color:red; font-weight: bold">`r if (((ARNA+BRNA+CRNA)/3)>15){
@@ -85,9 +104,8 @@ Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA
 "Warning some rRNA operons are missing one of the rRNA genes!"
 }`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check the genome quality or if contaminations from other organisms are present increasing the rRNA count.
 
-
-
 ```{r}
+col_pallet<- c("#BEAED4","#FDC086","#FFFF99","#386CB0","#F0027F","#BF5B17","#666666","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C")
 #margins
 M <- list(
           l = 50,
@@ -96,7 +114,7 @@ M <- list(
           t = 50,
           pad = 4
         )
-COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450) %>% 
+COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450,rotation = 90, marker=list(colors=col_pallet)) %>% 
     add_pie(hole = 0.6) %>% layout(showlegend = TRUE,
                                     margin = M,
                                     legend = list(orientation = 'h'),
@@ -104,6 +122,7 @@ COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450) %
                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 COMP_FIG
 ```
+
 **Figure 1:**  Pie chart representing all the annotation features identified by Bakta. Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download the currently displayed plot as a png file.  
 
 #### Composition and contig length plots
@@ -119,24 +138,23 @@ CONT_TALLY <- CONT_COMP %>% select(X1, X3) %>% count(X1,X3)
 CONT_TALLY <-spread(CONT_TALLY, key = "X3", value = "n")
 CONT_TALLY <- merge(CONT_LEN,CONT_TALLY, by="X1" )
 CONT_TALLY$cont_max <- as.integer(CONT_TALLY$cont_max)
-order(CONT_TALLY[,"cont_max"])
 CONT_TALLY <- CONT_TALLY %>%
-  select(X1,cont_max,CDS, everything())
+  select(X1,cont_max, everything())
 CONT_TALLY <- CONT_TALLY %>% arrange(desc(cont_max))
-if (!"CDS" %in% colnames(CONT_TALLY)) {
-  CONT_TALLY$CDS <- 0
+if (NO_CDS_WARNING == TRUE) {
+  CONT_TALLY$CDS=0
 }
 if (!"tRNA" %in% colnames(CONT_TALLY)) {
-  CONT_TALLY$tRNA <- 0
+  CONT_TALLY$tRNA=0
 }
 if (!"rRNA" %in% colnames(CONT_TALLY)) {
-  CONT_TALLY$rRNA <- 0
+  CONT_TALLY$rRNA=0
 }
 #### Fig dimensions
 len <- nrow(CONT_LEN)
 dim <- 0 
 if(len > 10){
-dim <- as.numeric((len - 10) *10) 
+dim <- as.numeric((len - 10) *100) 
 }
 dim_high <- as.numeric(600+dim) 
 ```
@@ -145,13 +163,21 @@ dim_high <- as.numeric(600+dim)
 #### Plots 
 #### Comp Plot
 CONT_COMP_FIG <- plot_ly(CONT_TALLY, y = ~X1, x = ~CDS, type = 'bar', orientation = 'h',width = 950, height = dim_high,
-                      text = CONT_TALLY$CDS,textposition = 'inside', name = 'CDS',
+                      text = CONT_TALLY$CDS,textposition = 'inside', name = 'CDS', marker = list(color = col_pallet[1]),
         hovertemplate = paste('(%{x}, %{y})'))
-tracker <- ncol(CONT_TALLY) 
-for(i in 4:tracker){
+
+#Reordering
+contig_names<-CONT_TALLY[,1]
+CONT_TALLY<-CONT_TALLY[,-1]
+CONT_TALLY<-CONT_TALLY[, order(colSums(-CONT_TALLY, na.rm=T))]
+CONT_TALLY<-cbind(contig_names,CONT_TALLY)
+tracker <- ncol(CONT_TALLY)
+col_no <-1
+for(i in CONT_TALLY_CURSOR:tracker){
+ col_no <- col_no+1
  FEAT_NAME <- colnames(CONT_TALLY)[i]
  CONT_COMP_FIG <- CONT_COMP_FIG %>% add_trace(x = CONT_TALLY[[i]],
-                                              text = CONT_TALLY[[i]], textposition = 'inside', name = FEAT_NAME )
+                                              text = CONT_TALLY[[i]], textposition = 'inside', name = FEAT_NAME,marker = list(color = col_pallet[col_no]))
 }
 CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
                                                         showgrid = TRUE,
@@ -170,9 +196,8 @@ CONT_COMP_FIG <- CONT_COMP_FIG %>% layout(xaxis = list(title = "Gene count",
                                            paper_bgcolor = 'rgb(255, 255, 255)', plot_bgcolor = 'rgb(255, 255, 255)',
                                            showlegend = TRUE) 
 #### Length plot
-CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$X1, name = 'Contig length',width = 950, height = dim_high,
-              type = 'bar', mode = 'markers',
-              line = list(color = 'rgb(128, 0, 128)'),
+CONT_LENGTH_FIG <- plot_ly(x = CONT_TALLY$cont_max, y = CONT_TALLY$contig_names, name = 'Contig length',width = 950, height = dim_high,
+              type = 'bar', marker = list(color = "#009B77"),
               text=CONT_TALLY$cont_max, textposition = 'auto',
               hovertemplate = paste('(%{x}, %{y})')
               ) 
@@ -181,7 +206,7 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
                       showgrid = TRUE, 
                       showline = TRUE, 
                       showticklabels = FALSE,
-                      linecolor = 'rgb(102, 102, 102, 0.8)', 
+                      linecolor = 'rgb(102, 102, 102, 0.8)',
                       domain = c(0.15, 1)),
                       xaxis = list(title = "Contig length",
                       zeroline = FALSE, 
@@ -193,22 +218,22 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
 ```
-**Figure 2 Composition by annotation features of each contig**. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
+**Figure 2:** Composition by annotation features of each contig. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
 
 #### Output table
-Full BAKTA output table presented from GFF file with added "Name" column for gene names, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
+Full BAKTA output table presented from GFF file with added "Name" and "ID" columns for gene names and gene ID created by Bakta, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 
 **Table 3**: The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 ```{r}
 BAKTA_PROC <- subset(BAKTA_PROC, select = -c(X2,X6,X7,X8))
-BAKTA_PROC <- BAKTA_PROC[, c(1,2,3,4,6,5)]
+BAKTA_PROC <- BAKTA_PROC[, c(1,2,3,4,7,6,5)]
 #remove contig description
 BAKTA_PROC <- BAKTA_PROC %>% filter (X3 != "region")
-DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End", "Name","Attributes"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons',
+DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End", "Name","ID","Attributes"),  rownames = FALSE, class = 'hover', extensions  = 'Buttons',
                     options = list( dom = '<"top"fB>rt<"bottom"lp>i<"clear">', buttons = c('copy', 'csv', 'excel', 'pdf', 'colvis'), 
                       search = list(regex = TRUE, caseInsensitive = FALSE),
                       columnDefs = list(list(
-                        targets = 5,
+                        targets = 6,
                         render = JS(
                           "function(data, type, row, meta) {",
                           "return type === 'display' && data.length > 6 ?",
@@ -219,6 +244,6 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
 DTABLE
 ```
 #### Links and Citation
-Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000  
+Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
 
 Citation for BAKTA can be found under [DOI: 10.1101/2021.09.02.458689](https://doi.org/10.1101/2021.09.02.458689).
