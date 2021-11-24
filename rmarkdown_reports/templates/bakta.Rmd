@@ -223,7 +223,6 @@ COMBINED_CONT_FIG
 #### Output table
 Full BAKTA output table presented from GFF file with added "Name" and "ID" columns for gene names and gene ID created by Bakta, extracted from "Attributes" column. For full description of columns please look at [link](https://en.wikipedia.org/wiki/General_feature_format)
 
-**Table 3**: The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 ```{r}
 BAKTA_PROC <- subset(BAKTA_PROC, select = -c(X2,X6,X7,X8))
 BAKTA_PROC <- BAKTA_PROC[, c(1,2,3,4,7,6,5)]
@@ -243,6 +242,8 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                     )
 DTABLE
 ```
+**Table 3**: The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
+
 #### Links and Citation
 Klappenbach JA, Dunbar JM, Schmidt TM. rRNA operon copy number reflects ecological strategies of bacteria. Appl Environ Microbiol. 2000;66(4):1328-1333. doi:10.1128/AEM.66.4.1328-1333.2000
 
