@@ -13,6 +13,7 @@ library(DT)
 library(knitr)
 library(plotly)
 ```
+
 ```{r}
 BAKTA_INPUT_FILE <- "#RESULTSENV#"
 SAMPLE_DATA <- "#NAMEENV#"
@@ -45,11 +46,17 @@ BAKTA_RAW <- invisible(na.omit(BAKTA_RAW))
 ```{r}
 # Parsing gff
 BAKTA_PROC <- separate(BAKTA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
+rm(BAKTA_RAW)
+
 BAKTA_PROC$name <- gsub(";.*","",BAKTA_PROC$name)
 BAKTA_PROC <- BAKTA_PROC %>% filter(X3 != "gene")
 
 BAKTA_PROC <- separate(BAKTA_PROC, X9, c(NA, "ID"), remove = FALSE, "ID=")
 BAKTA_PROC$ID <- gsub(";.*","",BAKTA_PROC$ID)
+
+#filter out hyps 
+HYPS_N <- BAKTA_PROC %>% filter(name =="hypothetical protein") %>% nrow() %>% as.integer()
+BAKTA_PROC <- BAKTA_PROC %>% filter(name !="hypothetical protein")
 
 NO_CDS_WARNING <- FALSE
 CONT_TALLY_CURSOR <- 4
@@ -60,7 +67,7 @@ if (('CDS' %in% unique(BAKTA_PROC$X3))==FALSE){
 ```
 
 ```{r}
-GEN_N <- BAKTA_PROC %>% nrow() %>% as.integer()
+GEN_N <- BAKTA_PROC  %>% filter(X3 != 'region') %>% nrow() %>% as.integer()
 CONTIG_N <- length(unique(BAKTA_PROC$X1))
 PIE <- BAKTA_PROC %>% filter(X3 != 'region') %>%  count( ,X3 ) %>% as.data.frame()
 RRNA_N_GEN <- PIE %>% filter(X3 == 'rRNA') %>% select(n) %>% as.integer()
@@ -78,6 +85,7 @@ CRNA <- BAKTA_PROC %>% filter(name == '23S ribosomal RNA') %>%  nrow()
 
 #reorder
 PIE <- PIE[order(-PIE$n),] 
+PIE <- rbind(PIE,list("hypothetical genes",as.integer(HYPS_N)))
 ```
 Bakta is a tool for the rapid & standardized annotation of bacterial genomes & plasmids. 
 [BAKTA Github](https://github.com/oschwengers/bakta)  
@@ -90,7 +98,7 @@ Bakta version used:  **`r BAKTA_VERSION`**
 Results are stored in: **`r PATH`**
 
 #### Overview
-Bakta founded **`r GEN_N` features** located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
+Bakta founded **`r GEN_N` features**,**`r HYPS_N` hypothetical genes**  located on **`r CONTIG_N` contigs**  (see Fig.2) and **`r TRNA_N_GEN` tRNA** sequences.
 
 <span style="color:red; font-weight: bold">`r if (NO_CDS_WARNING == TRUE){
 "Warning! No coding sequences (CDS) were found! Please check your fasta! "
@@ -105,7 +113,8 @@ Bakta detected `r ARNA` times 5S, `r BRNA` times 16S and `r CRNA` times 23S rRNA
 }`</span>. You can check their close proximity via Table 3 (search "ribosomal RNA"). If you have more RNA operons than expected please check the genome quality or if contaminations from other organisms are present increasing the rRNA count.
 
 ```{r}
-col_pallet<- c("#BEAED4","#FDC086","#FFFF99","#386CB0","#F0027F","#BF5B17","#666666","#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C")
+# 8F78B4---colour for hyps  
+col_pallet<- c("#BEAED4","#FDC086","#FFFF99","#386CB0","#F0027F","#BF5B17","#666666","#A6CEE3","#B2DF8A","#8F78B4","#33A02C","#FB9A99","#E31A1C")
 #margins
 M <- list(
           l = 50,
@@ -121,6 +130,7 @@ COMP_FIG <- plot_ly(PIE, labels = ~X3, values = ~n, width = 450, height = 450,ro
                                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 COMP_FIG
+rm(COMP_FIG)
 ```
 
 **Figure 1:**  Pie chart representing all the annotation features identified by Bakta. Clicking on the legend will exclude the feature from the composition and clicking in the right corner on camera allows to download the currently displayed plot as a png file.  
@@ -156,7 +166,9 @@ dim <- 0
 if(len > 10){
 dim <- as.numeric((len - 10) *100) 
 }
-dim_high <- as.numeric(600+dim) 
+dim_high <- as.numeric(600+dim)
+
+rm(CONT_COMP)
 ```
 
 ```{r}
@@ -217,6 +229,8 @@ CONT_LENGTH_FIG <- CONT_LENGTH_FIG %>% layout(yaxis = list(
          showlegend = FALSE) 
 COMBINED_CONT_FIG <- subplot(CONT_COMP_FIG, CONT_LENGTH_FIG, shareY = TRUE, titleX = TRUE) 
 COMBINED_CONT_FIG
+
+rm(CONT_COMP_FIG,CONT_LENGTH_FIG )
 ```
 **Figure 2:** Composition by annotation features of each contig. Hovering over a bar will display more details about the element. The plot is zoomable by highlighting a region that you want to zoom into. Clicking at the top right corner to download the currently displayed plot as a png file.
 
@@ -241,6 +255,8 @@ DTABLE <- datatable(BAKTA_PROC, colnames = c("Contig",  "Feature", "Start", "End
                       ))), callback = JS('table.page(3).draw(false);')
                     )
 DTABLE
+
+rm(list=ls())
 ```
 **Table 3**: The table is fully interactive, searchable and regex compatible. It is possible to select shown columns by using "Column visiblity" tab. It is possible to download currently displayed table to a clipboard, csv, xlsx or pdf depending on user preferences.
 
