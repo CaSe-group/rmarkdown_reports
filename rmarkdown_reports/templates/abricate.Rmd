@@ -6,8 +6,6 @@
 # Only change this variables
 input_file <- "#RESULTSENV#"
 sample_name <- "#NAMEENV#"
-abricate_version <- "#VERSIONENV#"
-path <- "#PATHENV#"
 
 # calling libs
 suppressMessages(library(plotly))
@@ -27,7 +25,11 @@ ABRicate is a tool for mass screening of contigs for antimicrobial resistance or
 
 Sample name: **#NAMEENV#**  
 
-ABRicate version used: **#VERSIONENV#**   
+ABRicate version used: **#TOOLVERSIONENV#**   
+
+Database versions: **#DBVERSIONENV#**
+
+Command used: **#COMMANDENV#**
 
 Results are stored in: **#PATHENV#**  
 
