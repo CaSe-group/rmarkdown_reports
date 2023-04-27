@@ -11,6 +11,7 @@ busco_database <- "#DBVERSIONENV#"
 # calling libs
 suppressMessages(library(plotly))
 suppressMessages(library(ggplot2))
+suppressMessages(library(grid))
 suppressMessages(library(htmlwidgets))
 suppressMessages(library(dplyr))
 suppressMessages(library(DT))
@@ -40,7 +41,72 @@ Results are stored in: **#PATHENV#**
 }`
 
 ```{r,echo=FALSE}
-#GRAPHCODEBLOCK#
+# BUSCO summary figure
+# @version 4.0.0
+# @since BUSCO 2.0.0
+# 
+# Copyright (c) 2016-2022, Evgeny Zdobnov (ez@ezlab.org)
+# Licensed under the MIT license. See LICENSE.md file.
+
+SIZE_RATIO <- 1
+PLOT_SPECIES <- #PLOT_SPECIES#
+PLOT_SPECIES <- factor(PLOT_SPECIES)
+PLOT_SPECIES <- factor(PLOT_SPECIES,levels(PLOT_SPECIES)[c(length(levels(PLOT_SPECIES)):1)]) # reorder your species here just by changing the values in the vector :
+PERCENTAGE_VALUES <- #PLOT_PERCENTAGE_VALUES#
+ABSOLUTE_VALUES <- #PLOT_ABSOLUTE_VALUES#
+
+labsize = 1
+if (length(levels(PLOT_SPECIES)) > 10){
+ labsize = 0.66
+}
+
+category <- c(rep(c("S","D","F","M"),c(1)))
+category <-factor(category)
+category = factor(category,levels(category)[c(4,1,2,3)])
+df = data.frame(PLOT_SPECIES, PERCENTAGE_VALUES, ABSOLUTE_VALUES, category)
+
+figure <- ggplot() + 
+  
+  geom_bar(aes(y = PERCENTAGE_VALUES, x = PLOT_SPECIES, fill = category), position = position_stack(reverse = TRUE), data = df, stat = "identity", width = 0.75) + 
+  coord_flip() + 
+  theme_gray(base_size = 8) + 
+  scale_y_continuous(labels = c("0","20","40","60","80","100"), breaks = c(0,20,40,60,80,100)) + 
+  scale_fill_manual(
+    values = c("#56B4E9", "#3492C7", "#F0E442", "#F04442"),
+    labels =c(" Complete (C) and single-copy (S)  ",
+              " Complete (C) and duplicated (D)",
+              " Fragmented (F)  ",
+              " Missing (M)")
+  ) +   
+  ggtitle("BUSCO Assessment Results") + 
+  xlab("") + 
+  ylab("\n%BUSCOs") + 
+
+  theme(plot.title = element_text(family = "sans", hjust=0.5, colour = "black", size = rel(2.2) * SIZE_RATIO, face = "bold")) + 
+  theme(legend.position="top",legend.title = element_blank()) + 
+  theme(legend.text = element_text(family = "sans", size = rel(1.2) * SIZE_RATIO)) + 
+  theme(panel.background = element_rect(color="#FFFFFF", fill = "white")) + 
+  theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major = element_blank()) +
+  theme(axis.text.y = element_text(family = "sans", colour = "black", size = rel(1.66) * SIZE_RATIO)) + 
+  theme(axis.text.x = element_text(family = "sans", colour = "black", size = rel(1.66) * SIZE_RATIO)) + 
+  theme(axis.line = element_line(size = 1 * SIZE_RATIO, colour = "black")) + 
+  theme(axis.ticks.length = unit(.85, "cm")) + 
+  theme(axis.ticks.y = element_line(colour = "white", size = 0)) + 
+  theme(axis.ticks.x = element_line(colour = "#222222")) + 
+  theme(axis.ticks.length = unit(0.4, "cm")) + 
+  theme(axis.title.x = element_text(family = "sans", size = rel(1.2) * SIZE_RATIO)) + 
+  
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  guides(fill=guide_legend(nrow = 2,byrow = TRUE))
+
+for(i in rev(c(1:length(levels(PLOT_SPECIES))))){
+  detailed_values <- ABSOLUTE_VALUES[PLOT_SPECIES == PLOT_SPECIES[PLOT_SPECIES == levels(PLOT_SPECIES)[i]]]
+  total_buscos <- sum(detailed_values)
+  figure <- figure + 
+  annotate("text", label = paste("C:", detailed_values[1] + detailed_values[2], " [S:", detailed_values[1], ", D:", detailed_values[2], "], F:", detailed_values[3], ", M:", detailed_values[4], ", n:", total_buscos, sep=""), 
+          y=3, x = i, size = labsize * 4 * SIZE_RATIO, colour = "black", hjust=0, family = "sans")
+}
 ```
 
 ```{r,echo=FALSE}
