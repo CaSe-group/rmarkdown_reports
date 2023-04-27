@@ -34,11 +34,14 @@ Results are stored in: **#PATHENV#**
 #### Overview
 `r if(nrow(busco_input)>0) { 
   sprintf("The sample **%s** contains X busco genes. Determined by Busco using the **%s** Database.",
-                    sample_name, busco_database)
+                    sample_name, str_split_i(busco_database, ' ', 0))
 } else { 
   sprintf("**The output file is empty; no Busco genes were recorded.**")
 }`
 
+```{r,echo=FALSE}
+#GRAPHCODEBLOCK#
+```
 
 ```{r,echo=FALSE}
 # Produce Table
