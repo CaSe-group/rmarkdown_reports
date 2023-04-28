@@ -4,9 +4,9 @@
  
 ```{r,echo=FALSE}
 # Only change this variables
-input_file <- "#RESULTSENV#"
-sample_name <- "#NAMEENV#"
-busco_database <- "#DBVERSIONENV#"
+INPUT_FILE <- "#RESULTSENV#"
+SAMPLE_NAME <- "#NAMEENV#"
+BUSCO_DATABASE <- "#DBVERSIONENV#"
 
 # calling libs
 suppressMessages(library(plotly))
@@ -16,7 +16,15 @@ suppressMessages(library(htmlwidgets))
 suppressMessages(library(dplyr))
 suppressMessages(library(DT))
 
-busco_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
+BUSCO_INPUT <- read.csv(file = INPUT_FILE, header = TRUE, sep = '\t', check.names=FALSE)
+BUSCO_DATABASE_BASE_NAME <- as.list(strsplit(BUSCO_DATABASE, ' ')[[0]])
+
+ALL_GENES_LIST <- #PLOT_ABSOLUTE_VALUES#
+COMPLETE_GENES_SINGLE_NR <- ALL_GENES_LIST[0]
+COMPLETE_GENES_DUPLICATE_NR <- ALL_GENES_LIST[1]
+FRAGMENTED_GENES_NR <- ALL_GENES_LIST[2]
+MISSING_GENES_NR <- ALL_GENES_LIST[3]
+TOTAL_BUSCO_GENE_COUNT <- sapply(ALL_GENES_LIST, sum)
 ```
 Busco ("Benchmarking Universal Single-Copy Orthologs") is a tool to assess genome completeness for microbial genomes.
 It uses a group-specific set of single-copy orthologous genes, defined via the used database.
@@ -38,12 +46,8 @@ Command used: **#COMMANDENV#**
 Results are stored in: **#PATHENV#**  
 
 #### Overview
-`r if(nrow(busco_input)>0) { 
-  sprintf("The sample **%s** contains X busco genes. Determined by Busco using the **%s** Database.",
-                    sample_name, busco_database)
-} else { 
-  sprintf("**The output file is empty; no Busco genes were recorded.**")
-}`
+`r sprintf("**%s** searched Busco-genes were searched in sample **%s**:\n**%s** are complete single-copy genes;\n**%s** are complete but duplicated genes;\n**%s** genes are fragmented;\n and **%s** genes are missing.\nDetermined by Busco using the **%s** Database.",
+                    TOTAL_BUSCO_GENE_COUNT, SAMPLE_NAME, COMPLETE_GENES_SINGLE_NR, COMPLETE_GENES_DUPLICATE_NR, FRAGMENTED_GENES_NR, MISSING_GENES_NR, BUSCO_DATABASE_BASE_NAME)`
 
 ```{r,echo=FALSE}
 # BUSCO summary figure
@@ -117,9 +121,9 @@ figure
 
 ```{r,echo=FALSE}
 # Produce Table
-if (nrow(busco_input)>0){
+if (nrow(BUSCO_INPUT)>0){
 
-DTABLE <- datatable(busco_input, 
+DTABLE <- datatable(BUSCO_INPUT, 
   rownames = FALSE, 
   class = 'hover', 
   extensions  = 'Buttons', 
