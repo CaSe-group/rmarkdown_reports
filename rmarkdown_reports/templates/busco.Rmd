@@ -20,11 +20,11 @@ BUSCO_INPUT <- read.csv(file = INPUT_FILE, header = TRUE, sep = '\t', check.name
 BUSCO_DATABASE_BASE_NAME <- strsplit(BUSCO_DATABASE, ' ')[[1]][1]
 
 ALL_GENES_LIST <- #PLOT_ABSOLUTE_VALUES#
-COMPLETE_GENES_SINGLE_NR <- ALL_GENES_LIST[0]
-COMPLETE_GENES_DUPLICATE_NR <- ALL_GENES_LIST[1]
-FRAGMENTED_GENES_NR <- ALL_GENES_LIST[2]
-MISSING_GENES_NR <- ALL_GENES_LIST[3]
-TOTAL_BUSCO_GENE_COUNT <- sapply(ALL_GENES_LIST, sum)
+COMPLETE_GENES_SINGLE_NR <- ALL_GENES_LIST[1]
+COMPLETE_GENES_DUPLICATE_NR <- ALL_GENES_LIST[2]
+FRAGMENTED_GENES_NR <- ALL_GENES_LIST[3]
+MISSING_GENES_NR <- ALL_GENES_LIST[4]
+TOTAL_BUSCO_GENE_COUNT <- Reduce('+', ALL_GENES_LIST)
 ```
 Busco ("Benchmarking Universal Single-Copy Orthologs") is a tool to assess genome completeness for microbial genomes.
 It uses a group-specific set of single-copy orthologous genes, defined via the used database.
