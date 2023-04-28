@@ -17,7 +17,7 @@ suppressMessages(library(dplyr))
 suppressMessages(library(DT))
 
 BUSCO_INPUT <- read.csv(file = INPUT_FILE, header = TRUE, sep = '\t', check.names=FALSE)
-BUSCO_DATABASE_BASE_NAME <- as.list(strsplit(BUSCO_DATABASE, ' ')[[0]])
+BUSCO_DATABASE_BASE_NAME <- strsplit(BUSCO_DATABASE, ' ')[[1]][1]
 
 ALL_GENES_LIST <- #PLOT_ABSOLUTE_VALUES#
 COMPLETE_GENES_SINGLE_NR <- ALL_GENES_LIST[0]
