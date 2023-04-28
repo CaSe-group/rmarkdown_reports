@@ -18,7 +18,12 @@ suppressMessages(library(DT))
 
 busco_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
 ```
-Busco is a tool to determine the completeness of a bacterial genome.  
+Busco ("Benchmarking Universal Single-Copy Orthologs") is a tool to assess genome completeness for microbial genomes.
+It uses a group-specific set of single-copy orthologous genes, defined via the used database.
+For the searched genes four states are possible: [C:complete], [D:duplicated], [F:fragmented], [M:missing].
+The recovered genes are classified as ‘complete’ when their lengths are within two standard deviations of 
+the BUSCO group mean length (i.e. within ∼95% expectation).
+"D" hints towards a contamination, while "F" & "M" are indicating a incomplete genome. 
 
 #### Data
 
@@ -35,7 +40,7 @@ Results are stored in: **#PATHENV#**
 #### Overview
 `r if(nrow(busco_input)>0) { 
   sprintf("The sample **%s** contains X busco genes. Determined by Busco using the **%s** Database.",
-                    sample_name, strsplit(busco_database, ' ')[0])
+                    sample_name, busco_database)
 } else { 
   sprintf("**The output file is empty; no Busco genes were recorded.**")
 }`
@@ -134,3 +139,6 @@ DTABLE
 #### Links and Citation
 If you publish the results use following citation:
 
+*Mosè Manni, Matthew R Berkeley, Mathieu Seppey, Felipe A Simão, Evgeny M Zdobnov,*
+*BUSCO Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes.*
+*Molecular Biology and Evolution, Volume 38, Issue 10, October 2021, Pages 4647–4654*
