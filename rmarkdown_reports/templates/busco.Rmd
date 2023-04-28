@@ -46,7 +46,7 @@ Command used: **#COMMANDENV#**
 Results are stored in: **#PATHENV#**  
 
 #### Overview
-`r sprintf("**%s** searched Busco-genes were searched in sample **%s**:\n**%s** are complete single-copy genes;\n**%s** are complete but duplicated genes;\n**%s** genes are fragmented;\n and **%s** genes are missing.\nDetermined by Busco using the **%s** Database.",
+`r sprintf("**%s** Busco-genes were searched in sample **%s**:\n**%s** are complete single-copy genes;\n**%s** are complete but duplicated genes;\n**%s** genes are fragmented;\n and **%s** genes are missing.\nDetermined by Busco using the **\"%s\"**-Database.",
                     TOTAL_BUSCO_GENE_COUNT, SAMPLE_NAME, COMPLETE_GENES_SINGLE_NR, COMPLETE_GENES_DUPLICATE_NR, FRAGMENTED_GENES_NR, MISSING_GENES_NR, BUSCO_DATABASE_BASE_NAME)`
 
 ```{r,echo=FALSE}
