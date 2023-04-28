@@ -107,6 +107,7 @@ for(i in rev(c(1:length(levels(PLOT_SPECIES))))){
   annotate("text", label = paste("C:", detailed_values[1] + detailed_values[2], " [S:", detailed_values[1], ", D:", detailed_values[2], "], F:", detailed_values[3], ", M:", detailed_values[4], ", n:", total_buscos, sep=""), 
           y=3, x = i, size = labsize * 4 * SIZE_RATIO, colour = "black", hjust=0, family = "sans")
 }
+figure
 ```
 
 ```{r,echo=FALSE}
