@@ -4,6 +4,7 @@
 ```
 
 ```{r, echo=FALSE, message = FALSE, warning=FALSE}
+# calling libs
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -12,15 +13,16 @@ library(stringr)
 library(DT)
 library(knitr)
 library(plotly)
-```
 
-```{r}
-BAKTA_INPUT_FILE <- "#RESULTSENV#"
-SAMPLE_DATA <- "#NAMEENV#"
-BAKTA_VERSION <- "#VERSIONENV#"
+# Only change this variables
+SAMPLE_NAME <- "#NAMEENV#"
+INPUT_FILE <- "#RESULTSENV#"
+VERSION <- "#TOOLVERSIONENV#"
+DB_VERSION <- "#DBVERSIONENV#"
+COMMAND <- "#COMMANDENV#"
 PATH <- "#PATHENV#" 
 
-BAKTA_RAW <- suppressMessages(read_delim(BAKTA_INPUT_FILE, 
+BAKTA_RAW <- suppressMessages(read_delim(INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
     col_names = FALSE, comment = c("#"), trim_ws = TRUE))
 BAKTA_RAW <- invisible(na.omit(BAKTA_RAW))
@@ -91,9 +93,14 @@ Bakta is a tool for the rapid & standardized annotation of bacterial genomes & p
 [BAKTA Github](https://github.com/oschwengers/bakta)  
 
 #### Data
-Sample name: **`r SAMPLE_DATA`**
+
+Sample name: **`r SAMPLE_NAME`**
 
 Bakta version used:  **`r BAKTA_VERSION`**
+
+Database versions: **`r BAKTA_DB_VERSION`**
+
+Command used: **`r BAKTA_COMMAND`**
 
 Results are stored in: **`r PATH`**
 

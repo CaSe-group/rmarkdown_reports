@@ -1,27 +1,38 @@
 ### Sourmash
-
-Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k"). Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.  
-
-#### Data
-
-Sample name: **#NAMEENV#**    
-
-Sourmash version used: **#VERSIONENV#**     
-
-Results are stored in: **#PATHENV#**    
-
-#### Overview
-
-```{r, echo = FALSE, message = FALSE, error=TRUE}
-CLASSIFICATION_FILE <- "#RESULTSENV#"
-METAGENOME_FILE <- "#RESULTSENVMETA#"
-SAMPLE_NAME <- "#NAMEENV#"
-
+```{r, echo=FALSE}
+# calling libs
 library(dplyr)
 library(ggplot2)
 library(plotly)
 library(stringr)
 
+# Only change this variables
+SAMPLE_NAME <- "#NAMEENV#"
+VERSION <- "#VERSIONENV#"
+DB_VERSION <- "#DBVERSIONENV#"
+COMMAND <- "#COMMANDENV#"
+OUTPUT_PATH <- "#PATHENV#"
+CLASSIFICATION_FILE <- "#RESULTSENV#"
+METAGENOME_FILE <- "#RESULTSENVMETA#"
+```
+
+Sourmash is a command-line tool to compare and classify DNA sequences based on "k-mers" ("DNA-words" of length "k"). Classification was performed using the "Genome Taxonomy Database" (GTDB), provided by sourmash, containing ~ 258k reference genomes.  
+
+#### Data
+
+Sample name: **`r SAMPLE_NAME`**    
+
+Sourmash version used: **`r VERSION`**
+
+Database version(s): **`r DB_VERSION`**
+
+Command used: **`r COMMAND`**
+
+Results are stored in: **`r OUTPUT_PATH`**    
+
+#### Overview
+
+```{r, echo = FALSE, message = FALSE, error=TRUE}
 CLASSIFICATION_DATA_EXIST <- FALSE
 METAGENOMIC_DATA_EXIST <- FALSE
 METAGENOMIC_DATA_NOT_EMPTY <- FALSE

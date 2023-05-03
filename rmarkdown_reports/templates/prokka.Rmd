@@ -1,7 +1,6 @@
 ### Prokka
-
-
 ```{r, echo=FALSE}
+# calling libs
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -10,12 +9,16 @@ library(stringr)
 library(DT)
 library(plotly)
 library(knitr)
-```
 
-```{r, echo=FALSE}
-PROKKA_INPUT_FILE <- "#RESULTSENV#"
-PROKKA_VERSION <- "#NAMEENV#"
-PROKKA_RAW <- read_delim(PROKKA_INPUT_FILE, 
+# Only change this variables
+SAMPLE_NAME <- "#NAMEENV#"
+INPUT_FILE <- "#RESULTSENV#"
+VERSION <- "#TOOLVERSIONENV#"
+DB_VERSION <- "#DBVERSIONENV#"
+COMMAND <- "#COMMANDENV#"
+OUTPUT_PATH <- "#PATHENV#"
+
+PROKKA_RAW <- read_delim(INPUT_FILE, 
     delim = "\t", escape_double = FALSE,
     col_names = FALSE, comment = c("#"), trim_ws = TRUE)
 PROKKA_RAW <- na.omit(PROKKA_RAW)
@@ -25,13 +28,13 @@ PROKKA_RAW <- na.omit(PROKKA_RAW)
 #Sanity checks
 #EXIT <- FALSE
 # Check if file exists
-#if (is.null(PROKKA_INPUT_FILE) || PROKKA_INPUT_FILE == "#RESULTSENV#"){
+#if (is.null(INPUT_FILE) || INPUT_FILE == "#RESULTSENV#"){
 #print("No source file detected please specify PROKKA input file")
 #  EXIT <- TRUE
 #}
 #
 # Check if gff3
-#if (ncol(PROKKA_RAW) != 9 || str_detect(PROKKA_INPUT_FILE, "gff", negate = TRUE)){
+#if (ncol(PROKKA_RAW) != 9 || str_detect(INPUT_FILE, "gff", negate = TRUE)){
 #print("Incorect source file detected, please use gff3 file format")
 #  EXIT <- TRUE
 #}
@@ -57,7 +60,6 @@ PROKKA_PROC <- separate(PROKKA_RAW, X9, c(NA, "name"), remove = FALSE, "Name=")
 PROKKA_PROC$name <- gsub(";.*","",PROKKA_PROC$name)
 PROKKA_PROC <- PROKKA_PROC %>% filter(X3 != "gene")
 
-```{r}
 GEN_N <- PROKKA_PROC %>% nrow() %>% as.integer()
 GEN_N_HYP <- PROKKA_PROC %>% filter(X3 == 'CDS' & is.na(name)) %>% count() %>% as.integer()
 GEN_N_TRUE <- PROKKA_PROC %>% filter(X3 == 'CDS' & !is.na(name)) %>% count() %>% as.integer()
@@ -81,8 +83,19 @@ if (is.na(TRNA_N_GEN)){
 Prokka is a software tool to annotate bacterial, archaeal and viral genomes quickly and produce standards-compliant output files. 
 [Prokka Github](https://github.com/tseemann/prokka)  
 
-Prokka version used: #VERSIONENV#  
-Results are stored in: #PATHENV#  
+#### Data
+
+Sample name: **`r SAMPLE_NAME`**
+
+Prokka version used: **`r VERSION`**
+
+Database versions: **`r DB_VERSION`**
+
+Command used: **`r COMMAND`**
+
+Results are stored in: **`r OUTPUT_PATH`**
+
+#### Overview
 
 Prokka founded **`r GEN_N` features**, **`r GEN_N_TRUE` genes**, **`r GEN_N_HYP` hypothetical genes** <span style="color:red; font-weight: bold">
 `r if(GEN_N_HYP/GEN_N > 0.7){

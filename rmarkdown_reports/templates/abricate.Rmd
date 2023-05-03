@@ -1,12 +1,7 @@
 <!-- Report template, please replace {TOOL}  -->
-
 ### ABRicate
  
 ```{r,echo=FALSE}
-# Only change this variables
-input_file <- "#RESULTSENV#"
-sample_name <- "#NAMEENV#"
-
 # calling libs
 suppressMessages(library(plotly))
 suppressMessages(library(ggplot2))
@@ -14,7 +9,15 @@ suppressMessages(library(htmlwidgets))
 suppressMessages(library(dplyr))
 suppressMessages(library(DT))
 
-abricate_input <- read.csv(file = input_file, header = TRUE, sep = '\t', check.names=FALSE)
+# Only change this variables
+SAMPLE_NAME <- "#NAMEENV#"
+INPUT_FILE <- "#RESULTSENV#"
+VERSION <- "#TOOLVERSIONENV#"
+DB_VERSION <- "#DBVERSIONENV#"
+COMMAND <- "#COMMANDENV#"
+OUTPUT_PATH <- "#PATHENV#"
+
+abricate_input <- read.csv(file = INPUT_FILE, header = TRUE, sep = '\t', check.names=FALSE)
 database_name <- abricate_input %>% select (DATABASE)
 abricate_sample <- nrow(abricate_input)
 abricate_database <- database_name [!duplicated(database_name),]
@@ -23,20 +26,20 @@ ABRicate is a tool for mass screening of contigs for antimicrobial resistance or
 
 #### Data
 
-Sample name: **#NAMEENV#**  
+Sample name: **`r SAMPLE_NAME`**  
 
-ABRicate version used: **#TOOLVERSIONENV#**   
+ABRicate version used: **`r VERSION`**  
 
-Database versions: **#DBVERSIONENV#**
+Database version(s): **`r DB_VERSION`**
 
-Command used: **#COMMANDENV#**
+Command used: **`r COMMAND`**
 
-Results are stored in: **#PATHENV#**  
+Results are stored in: **`r OUTPUT_PATH`**  
 
 #### Overview
 `r if(nrow(abricate_input)>0) { 
   sprintf("The sample **%s** contains **%s** resistance genes. Determined by ABRicate using the **%s** Database.",
-                    sample_name, abricate_sample, abricate_database)
+                    SAMPLE_NAME, abricate_sample, abricate_database)
 } else { 
   sprintf("**No resistance genes have been found in your sample!**")
 }`
@@ -52,7 +55,7 @@ df_mod <- df [!duplicated(df),]
 gene <- c(df_mod$GENE)
 resistance <- c(df_mod$RESISTANCE)
 resistance_unique <- resistance[!duplicated(resistance)]
-sample <- c(sample_name)
+sample <- c(SAMPLE_NAME)
 empty <- c('')
 
 # count list elements
@@ -80,13 +83,13 @@ plot_ly(
 `r if(nrow(abricate_input)>0){ 
   sprintf("**Fig.1**: Interactive sunburst chart showing the detected resistances in **%s**. The first ring shows the resistances and the second the associated resistance genes.
 For filtering the results after resistances click on it. The plot can be saved in the right upper corner.",
-sample_name)
+SAMPLE_NAME)
 }`
 
 `r if(nrow(abricate_input)>0){ 
   sprintf("#### Resistance gene table\n
   **Tab.1**: Interactive table showing the abricate raw data for the sample **%s**. You can filter and download the table directly.", 
-  sample_name)
+  SAMPLE_NAME)
 }`
 
 ```{r,echo=FALSE}

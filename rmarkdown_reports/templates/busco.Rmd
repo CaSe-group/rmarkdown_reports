@@ -1,13 +1,8 @@
 <!-- Report template, please replace {TOOL}  -->
 
 ### Busco
- 
-```{r,echo=FALSE}
-# Only change this variables
-INPUT_FILE <- "#RESULTSENV#"
-SAMPLE_NAME <- "#NAMEENV#"
-BUSCO_DATABASE <- "#DBVERSIONENV#"
 
+```{r,echo=FALSE}
 # calling libs
 suppressMessages(library(plotly))
 suppressMessages(library(ggplot2))
@@ -15,6 +10,14 @@ suppressMessages(library(grid))
 suppressMessages(library(htmlwidgets))
 suppressMessages(library(dplyr))
 suppressMessages(library(DT))
+
+# Only change this variables
+SAMPLE_NAME <- "#NAMEENV#"
+INPUT_FILE <- "#RESULTSENV#"
+VERSION <- "#TOOLVERSIONENV#"
+DB_VERSION <- "#DBVERSIONENV#"
+COMMAND <- "#COMMANDENV#"
+OUTPUT_PATH <- "#PATHENV#"
 
 BUSCO_INPUT <- read.csv(file = INPUT_FILE, header = TRUE, sep = '\t', check.names=FALSE)
 BUSCO_DATABASE_BASE_NAME <- strsplit(BUSCO_DATABASE, ' ')[[1]][1]
@@ -35,15 +38,15 @@ the BUSCO group mean length (i.e. within ∼95% expectation).
 
 #### Data
 
-Sample name: **#NAMEENV#**  
+Sample name: **`r SAMPLE_NAME`**  
 
-Busco version used: **#TOOLVERSIONENV#**   
+Busco version used: **`r VERSION`**   
 
-Database versions: **#DBVERSIONENV#**
+Database versions: **`r DB_VERSION`**
 
-Command used: **#COMMANDENV#**
+Command used: **`r COMMAND`**
 
-Results are stored in: **#PATHENV#**  
+Results are stored in: **`r OUTPUT_PATH`**  
 
 #### Overview
 `r sprintf("**%s** Busco-genes were searched in sample **%s**:\n**%s** are complete single-copy genes;\n**%s** are complete but duplicated genes;\n**%s** genes are fragmented;\n and **%s** genes are missing.\nDetermined by Busco using the **\"%s\"**-Database.",
