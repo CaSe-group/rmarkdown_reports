@@ -96,11 +96,11 @@ Bakta is a tool for the rapid & standardized annotation of bacterial genomes & p
 
 Sample name: **`r SAMPLE_NAME`**
 
-Bakta version used:  **`r BAKTA_VERSION`**
+Bakta version used:  **`r VERSION`**
 
-Database versions: **`r BAKTA_DB_VERSION`**
+Database versions: **`r DB_VERSION`**
 
-Command used: **`r BAKTA_COMMAND`**
+Command used: **`r COMMAND`**
 
 Results are stored in: **`r PATH`**
 
