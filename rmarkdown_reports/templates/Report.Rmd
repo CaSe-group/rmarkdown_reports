@@ -23,7 +23,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo=FALSE)
 ```
 
 ```{r, echo = FALSE}
-htmltools::img(src = knitr::image_uri("/input/figures/PathogenSeqCoreFacility.png"),
+htmltools::img(src = knitr::image_uri("render_dir/PathogenSeqCoreFacility.png"),
   alt = 'logo',
   style = 'position:absolute; top:0; right:0; padding:10px; width: 502.5px; height: 140.5px')
 ```
