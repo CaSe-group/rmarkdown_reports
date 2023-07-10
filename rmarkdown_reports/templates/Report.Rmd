@@ -19,13 +19,11 @@ output:
 ---
 
 ```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo=FALSE) 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 ```
 
-```{r, echo = FALSE}
-htmltools::img(src = knitr::image_uri("PathogenSeqCoreFacility_noBackground.png"),
-  alt = 'logo',
-  style = 'position:absolute; top:0; right:0; padding:10px; width: 502.5px; height: 140.5px, background-color: white')
+```{r, echo = FALSE, out.extra = 'style = "position:absolute; top:0; right:0; width: 502.5px; height: 140.5px; padding: 10px"'}
+knitr::include_graphics("PathogenSeqCoreFacility_noBackground.png")
 ```
 
 # Samples {.tabset}
